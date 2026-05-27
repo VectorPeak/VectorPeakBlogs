@@ -1,69 +1,77 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
+# 文档项目协作指令
 
-# Documentation project instructions
+## 项目概览
 
-## About this project
+- 本仓库是基于 [Mintlify](https://mintlify.com) 搭建的文档与个人博客站点
+- 页面主要使用 `MDX` 编写，并通过 YAML frontmatter 声明标题、描述、图标等元数据
+- 站点主配置文件是 `docs.json`
+- Mintlify、MDX 组件和写作语法以 `https://mintlify.com/docs` 作为首要参考
+- 本地预览使用 `mint dev`
+- 链接检查使用 `mint broken-links`
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
-- Pages are MDX files with YAML frontmatter
-- Configuration lives in `docs.json`
-- Use `https://mintlify.com/docs` as the primary reference for Mintlify and MDX writing syntax in this project
-- Run `mint dev` to preview locally
-- Run `mint broken-links` to check links
+## 站点定位
 
-## Terminology
+- `VectorPeak` 是个人博客和知识站点，不只是默认文档模板
+- 内容主要覆盖个人笔记、LeetCode 算法学习、DeepLearning 学习记录和技术实践
+- 写作目标是沉淀可长期维护的个人知识库，而不是堆放零散页面
+- 新增内容时，应优先判断它属于 `Guides`、`LeetCode`、`DeepLearning` 还是更适合作为独立栏目
 
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+## 术语与编码
 
-- `temp` means the local branch `temporary_storage`
-- Default to decoding project text files as `UTF-8` before considering other encodings
+- `temp` 指本地分支 `temporary_storage`
+- 默认把项目文本文件按 `UTF-8` 读取和写入，只有在证据明确时才考虑其他编码
+- 中文内容应直接保存为 UTF-8，不要用转义文本或混合编码规避乱码
+- 文件路径、命令、配置键、代码标识符使用反引号标记
 
-## Style preferences
+## 写作风格
 
-{/* Add any project-specific style rules below */}
+- 中文页面优先使用清晰、务实、解释型的表达
+- 重要概念采用自顶向下的讲法：先说明它解决什么问题，再解释结构、机制、例子和边界
+- 对关键术语补充相关概念、对偶概念或反向概念，必要时使用类比和对比帮助理解
+- 涉及计算机科学、算法、模型或数学关系时，可以补充简洁的 LaTeX 公式
+- 主动补充读者可能“不知道自己不知道”的前置知识、常见误区和迁移关联
+- 英文页面保持主动语态，句子简洁，一句话尽量只表达一个核心意思
+- 标题使用 sentence case，除非已有栏目明显采用另一套命名约定
+- UI 操作使用加粗，例如：点击 **Settings**
+- 文件名、命令、路径、配置项和代码引用使用行内代码格式
 
-- Use active voice and second person ("you")
-- Keep sentences concise — one idea per sentence
-- Use sentence case for headings
-- Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+## 图示与插图风格
 
-## Diagram and illustration style
+- LeetCode 理论页面在需要精确布局时，优先使用手写 `SVG`，而不是 Mermaid
+- 图示应延续当前 blog 的视觉基线：简洁、教学导向、克制，不做装饰性堆叠
+- 新图应参考 `images/leetcode/` 中已有的链表和数组图示
+- 使用带圆角的卡片容器、柔和边框，并通过 `prefers-color-scheme` 支持浅色和深色模式
+- 推荐使用克制色板：
+  - 浅色背景：`#F8FAFC`
+  - 深色背景：`#0F1115`
+  - 面板或卡片：浅色模式 `#FFFFFF`，深色模式 `#16181D`
+  - 边框：浅色模式 `#CBD5E1`，深色模式 `#2A2A30`
+  - 主文字：浅色模式 `#0F172A`，深色模式 `#F9FAFB`
+  - 次要文字：浅色模式 `#475569`，深色模式 `#A1A1AA`
+  - 强调绿色：`#16A34A`，深色模式对应 `#22C55E`
+  - 警示或结束标记红色：`#EF4444`
+- 使用 SVG 中已有的普通无衬线字体，保持排版简单、清晰、可读
+- 使用圆角矩形、干净分隔线、等距箭头和居中标签
+- 标签、状态 chip、圆点和图例应对齐到共同中心线，避免视觉上漂浮
+- 解释型图例优先放在图底部的一行横向区域
+- 除非图内部确实需要标题，否则不要在 SVG 中重复页面小节标题
+- 避免重渐变、重阴影、玻璃质感、霓虹色和信息图式拥挤装饰
+- 不要在图片内部放过大的解释文字，正文 MDX 应承担主要说明
+- 周围文章为中文时，图中标签优先使用中文；`head`、`next`、`null` 等能帮助理解的技术标识可以保留英文
+- 数组图应强调连续存储、地址与下标对齐、单元格等宽
+- 链表图应强调节点分区、指针方向和一致的图例处理
+- LeetCode 图示保存在 `images/leetcode/`，文件名使用稳定、可描述的 kebab-case
+- 改进已有图片样式时，除非明确需要缓存刷新，否则保留原文件名
 
-- For LeetCode theory pages, prefer hand-authored `SVG` diagrams over Mermaid when precise layout matters
-- Keep diagrams consistent with the current blog look: minimal, instructional, calm, and not decorative
-- Match the existing linked-list and array diagrams in `images/leetcode/`
-- Use a rounded card container with soft borders in light mode and dark mode support via `prefers-color-scheme`
-- Prefer a restrained palette:
-  - light background: `#F8FAFC`
-  - dark background: `#0F1115`
-  - panel/card: `#FFFFFF` in light mode, `#16181D` in dark mode
-  - border: `#CBD5E1` in light mode, `#2A2A30` in dark mode
-  - primary text: `#0F172A` in light mode, `#F9FAFB` in dark mode
-  - secondary text: `#475569` in light mode, `#A1A1AA` in dark mode
-  - accent green: `#16A34A` with dark-mode counterpart `#22C55E`
-  - warning/end marker red: `#EF4444`
-- Use plain sans-serif fonts already used in the SVGs, and keep typography simple and readable
-- Use rounded rectangles, clean dividers, evenly spaced arrows, and centered labels
-- Align labels, chips, dots, and legends to shared center lines; avoid anything that looks visually "floating"
-- For explanatory legends, prefer one horizontal row near the bottom of the diagram
-- Avoid repeating the section heading inside the SVG unless the diagram truly needs an internal title
-- Avoid heavy gradients, shadows, glossy effects, neon colors, or infographic-style clutter
-- Avoid oversized captions inside the image; the MDX text below the image should carry the explanation
-- Prefer Chinese labels when the surrounding article is Chinese, but keep concise technical identifiers like `head`, `next`, and `null` when they aid learning
-- For arrays, emphasize contiguous storage, address/index alignment, and equal cell sizing
-- For linked lists, emphasize node partitioning, pointer direction, and consistent legend treatment
-- Save LeetCode diagrams under `images/leetcode/` with stable, descriptive kebab-case names
-- When replacing an existing image for style improvement, preserve the original filename unless cache busting is explicitly needed
+## 协作约定
 
-## Collaboration note
+- 当前 LeetCode SVG 风格是未来图示的默认视觉基线，除非用户明确要求换风格
+- 修改导航、栏目和路径时，要同步检查 `docs.json`、对应 MDX 文件路径和页面内链接
+- 对中文页面做批量处理前，先确认文件真实编码，避免把显示乱码误判为文件损坏
+- 如果发现内容仍是 Mintlify 默认模板，应优先把它改成符合 VectorPeak 个人知识站点定位的内容
 
-- Treat the current LeetCode SVG style as the default visual baseline for future diagrams in this repo unless the user asks for a different style
+## 内容边界
 
-## Content boundaries
-
-{/* Define what should and shouldn't be documented */}
-{/* Example: Don't document internal admin features */}
+- 不要把本仓库写成产品 SaaS 文档，除非对应页面明确是 Mintlify 示例或 API 示例
+- 不要新增与个人知识库、算法学习、深度学习、技术实践无关的模板化页面
+- 不要在没有上下文的情况下引入营销式 landing page 文案

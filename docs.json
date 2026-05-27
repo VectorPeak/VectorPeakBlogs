@@ -48,6 +48,43 @@
         ]
       },
       {
+        "tab": "Agent",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "Agent/index",
+              "Agent/quickstart",
+              "Agent/development"
+            ]
+          },
+          {
+            "group": "Customization",
+            "pages": [
+              "Agent/essentials/settings",
+              "Agent/essentials/navigation"
+            ]
+          },
+          {
+            "group": "Writing content",
+            "pages": [
+              "Agent/essentials/markdown",
+              "Agent/essentials/code",
+              "Agent/essentials/images",
+              "Agent/essentials/reusable-snippets"
+            ]
+          },
+          {
+            "group": "AI tools",
+            "pages": [
+              "Agent/ai-tools/cursor",
+              "Agent/ai-tools/claude-code",
+              "Agent/ai-tools/windsurf"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "DeepLearning",
         "groups": [
           {
