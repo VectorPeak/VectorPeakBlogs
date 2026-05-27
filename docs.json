@@ -51,6 +51,14 @@
         "tab": "Agent",
         "groups": [
           {
+            "group": "Agent Platforms",
+            "pages": [
+              "Agent/Agent_platforms/openclaw",
+              "Agent/Agent_platforms/hermes",
+              "Agent/Agent_platforms/claude-code"
+            ]
+          },
+          {
             "group": "Getting started",
             "pages": [
               "Agent/index",
