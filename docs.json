@@ -196,18 +196,15 @@
   "navbar": {
     "links": [
       {
-        "label": "微信",
-        "href": "/about#wechat"
-      },
-      {
-        "label": "GitHub",
-        "href": "https://github.com/VectorPeak"
-      },
-      {
-        "label": "LinkedIn",
-        "href": "https://www.linkedin.com/in/%E6%98%9F%E5%B2%B3-%E6%9C%B1-132b33412/"
+        "label": "Support",
+        "href": "mailto:hi@mintlify.com"
       }
-    ]
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.mintlify.com"
+    }
   },
   "contextual": {
     "options": [
