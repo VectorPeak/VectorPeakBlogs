@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mint Workflow To Steps"
+  short_description: "Convert workflows into Mintlify Steps components."
+  default_prompt: "Convert this workflow in the given MDX file into Mintlify Steps."

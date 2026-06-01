@@ -1,97 +1,79 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "VectorPeak"
+description: "AI Agent、深度学习、算法与工程实践的个人知识站点"
+mode: "custom"
 ---
 
-## Setting up
+<section className="vp-home">
+  <div className="vp-home__hero">
+    <p className="vp-home__eyebrow">VectorPeak Knowledge Base</p>
 
-Get your documentation site up and running in minutes.
+    <h1 className="vp-home__title">
+      AI Agent
+      <span>工程实践指南</span>
+    </h1>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+    <p className="vp-home__subtitle">
+      这里记录 Agent、DeepLearning、LeetCode 和个人工程实践，用项目验证理解，用长文沉淀判断
+    </p>
 
-## Make it yours
+    <div className="vp-home__paths" aria-label="Knowledge paths">
+      <a className="vp-path-card vp-path-card--agent" href="/Agent/Agent_Theory/agentic-memory-systems">
+        <span className="vp-path-card__badge">Step 1</span>
+        <strong>理解 Agent</strong>
+        <small>从 memory、planning、tool use 建立核心框架，理解 Agent 为什么不是普通聊天机器人</small>
+      </a>
 
-Design a docs site that looks great and empowers your users.
+      <a className="vp-path-card vp-path-card--algorithm" href="/LeetCode/mindmap">
+        <span className="vp-path-card__badge">Step 2</span>
+        <strong>算法路线</strong>
+        <small>用路线图、数据结构和题型模板提升刷题效率，把 LeetCode 变成可复用的方法库</small>
+      </a>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/深度学习/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      <a className="vp-path-card vp-path-card--project" href="https://github.com/VectorPeak">
+        <span className="vp-path-card__badge">Projects</span>
+        <strong>项目实践</strong>
+        <small>把学习内容沉淀成可访问的站点、可复用的技能和真实能运行的工具</small>
+      </a>
+    </div>
 
-## Create beautiful pages
+    <div className="vp-home__actions">
+      <a className="vp-button vp-button--primary" href="/Agent/Modern_Agent/claude-code">
+        开始阅读
+      </a>
+      <a className="vp-button vp-button--secondary" href="https://github.com/VectorPeak">
+        查看 GitHub
+      </a>
+    </div>
+  </div>
 
-Everything you need to create world-class documentation.
+  <div className="vp-home__about">
+    <div className="vp-section-heading">
+      <p>About</p>
+      <h2>这是 VectorPeak 的个人技术工作台</h2>
+      <span>
+        第三人称看，这个站点不是普通文档模板，而是 VectorPeak 对 AI Agent、算法训练、深度学习和工程自动化的长期记录。文章负责解释判断，项目负责证明实践，两者共同构成一个持续更新的技术画像
+      </span>
+    </div>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <div className="vp-project-grid" aria-label="GitHub projects">
+      <a className="vp-project-card" href="https://github.com/VectorPeak/VectorPeakBlogs">
+        <p>VectorPeakBlogs</p>
+        <strong>个人知识站点</strong>
+        <span>基于 Mintlify 的博客与知识库，用来组织 Agent、DeepLearning 和 LeetCode 学习记录</span>
+      </a>
 
-## Need inspiration?
+      <a className="vp-project-card" href="https://github.com/VectorPeak/vectorpeak-agent-skills">
+        <p>vectorpeak-agent-skills</p>
+        <strong>Agent 技能沉淀</strong>
+        <span>面向软件开发和知识工作的个人 Agent skills，把高频工作流沉淀成可复用能力</span>
+      </a>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+      <a className="vp-project-card" href="https://github.com/VectorPeak/CodexPetLive">
+        <p>CodexPetLive</p>
+        <strong>桌面宠物运行时</strong>
+        <span>Windows 桌面运行时，让 Codex 生成的宠物角色能够真正出现在本地桌面环境</span>
+      </a>
+    </div>
+  </div>
+</section>

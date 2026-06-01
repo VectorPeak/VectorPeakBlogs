@@ -69,8 +69,8 @@
 - 修改导航、栏目和路径时，要同步检查 `docs.json`、对应 MDX 文件路径和页面内链接
 - 对中文页面做批量处理前，先确认文件真实编码，避免把显示乱码误判为文件损坏
 - 如果发现内容仍是 Mintlify 默认模板，应优先把它改成符合 VectorPeak 个人知识站点定位的内容
-- `Agent` tab 下的平台文章统一放在 `Agent/Agent_platforms/`
-- `Agent Platforms` 分组的文章顺序固定为 `OpenClaw`、`Hermes`、`Claude Code`
+- `Agent` tab 下的现代 Agent 文章统一放在 `Agent/Modern_Agent/`
+- `Modern Agent` 分组的文章顺序固定为 `OpenClaw`、`Hermes`、`Claude Code`
 - 每次完成文件修改后，默认提交并推送到远程 GitHub 仓库，除非用户明确要求只保留本地改动
 
 ## 内容边界

@@ -1,0 +1,4 @@
+.mint-dev*.log
+.mint-dev.pid
+*.bak-*
+*.scheme*

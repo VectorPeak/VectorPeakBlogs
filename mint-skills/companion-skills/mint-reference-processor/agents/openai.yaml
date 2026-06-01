@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mint Reference Processor"
+  short_description: "Convert MDX reference sections into Mintlify Tabs and Cards."
+  default_prompt: "Convert the reference section in this MDX file into categorized Mintlify Tabs and Cards."

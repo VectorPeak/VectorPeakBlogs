@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mint Graph To Mermaid"
+  short_description: "Convert rough graphs into Mintlify-ready Mermaid diagrams."
+  default_prompt: "Convert this process or structure into a VectorPeak light-mode Mermaid diagram for Mintlify."

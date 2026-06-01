@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mint Blog Formatter"
+  short_description: "Normalize Mintlify blog metadata and top badges."
+  default_prompt: "Format this Mintlify MDX blog and ensure the Written month badge appears after the first body Markdown heading."

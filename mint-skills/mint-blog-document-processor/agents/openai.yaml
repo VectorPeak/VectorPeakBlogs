@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mint Blog Document Processor"
+  short_description: "Process MDX blog documents with Mintlify components."
+  default_prompt: "Process this MDX blog document and convert diagrams into Mermaid while preserving originals as comments."

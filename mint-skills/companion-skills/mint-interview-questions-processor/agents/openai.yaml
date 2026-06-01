@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mint Interview Questions Processor"
+  short_description: "Convert interview Q&A sections into Mintlify accordions."
+  default_prompt: "Convert interview questions in this MDX file into collapsed Mintlify accordions."

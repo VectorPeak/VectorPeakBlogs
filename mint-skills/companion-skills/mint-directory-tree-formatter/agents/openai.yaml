@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mint Directory Tree Formatter"
+  short_description: "Format directory tree blocks as titled Mintlify code blocks."
+  default_prompt: "Format directory tree blocks in this MDX file with title and folder-tree icon."

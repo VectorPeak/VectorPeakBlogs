@@ -8,6 +8,23 @@
     "dark": "#15803D"
   },
   "favicon": "/images/logo/vectorpeak_no_background.png",
+  "redirects": [
+    {
+      "source": "/Agent/Agent_platforms/openclaw",
+      "destination": "/Agent/Modern_Agent/openclaw",
+      "permanent": true
+    },
+    {
+      "source": "/Agent/Agent_platforms/hermes",
+      "destination": "/Agent/Modern_Agent/hermes",
+      "permanent": true
+    },
+    {
+      "source": "/Agent/Agent_platforms/claude-code",
+      "destination": "/Agent/Modern_Agent/claude-code",
+      "permanent": true
+    }
+  ],
   "navigation": {
     "tabs": [
       {
@@ -51,43 +68,28 @@
         "tab": "Agent",
         "groups": [
           {
-            "group": "Agent Platforms",
+            "group": "Agent Theory",
             "pages": [
-              "Agent/Agent_platforms/openclaw",
-              "Agent/Agent_platforms/hermes",
-              "Agent/Agent_platforms/claude-code"
+              "Agent/Agent_Theory/Evaluation",
+              "Agent/Agent_Theory/memory",
+              "Agent/Agent_Theory/multi-agent"
             ]
           },
           {
-            "group": "Getting started",
+            "group": "Agent Framework",
             "pages": [
-              "Agent/index",
-              "Agent/quickstart",
-              "Agent/development"
+              "Agent/Agent_Framework/Framework",
+              "Agent/Agent_Framework/Harness",
+              "Agent/Agent_Framework/LangChain",
+              "Agent/Agent_Framework/LangGraph"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Modern Agent",
             "pages": [
-              "Agent/essentials/settings",
-              "Agent/essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "Agent/essentials/markdown",
-              "Agent/essentials/code",
-              "Agent/essentials/images",
-              "Agent/essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "Agent/ai-tools/cursor",
-              "Agent/ai-tools/claude-code",
-              "Agent/ai-tools/windsurf"
+              "Agent/Modern_Agent/openclaw",
+              "Agent/Modern_Agent/hermes",
+              "Agent/Modern_Agent/claude-code"
             ]
           }
         ]
@@ -194,15 +196,18 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "微信",
+        "href": "/about#wechat"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/VectorPeak"
+      },
+      {
+        "label": "LinkedIn",
+        "href": "https://www.linkedin.com/in/%E6%98%9F%E5%B2%B3-%E6%9C%B1-132b33412/"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
+    ]
   },
   "contextual": {
     "options": [
@@ -218,9 +223,8 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/VectorPeak",
+      "linkedin": "https://www.linkedin.com/in/%E6%98%9F%E5%B2%B3-%E6%9C%B1-132b33412/"
     }
   }
 }
