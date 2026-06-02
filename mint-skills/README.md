@@ -15,6 +15,7 @@ mint-skills/
     ├── mint-blog-formatter/
     ├── mint-graph-to-mermaid/
     ├── mint-interview-questions-processor/
+    ├── mint-navigation-processor/
     ├── mint-reference-processor/
     ├── mint-directory-tree-formatter/
     └── mint-workflow-to-steps/
@@ -29,6 +30,7 @@ mint-skills/
 | `mint-directory-tree-formatter` | Formats directory trees as titled `text` code fences with a folder-tree icon |
 | `mint-graph-to-mermaid` | Converts rough diagrams, PNG flowcharts, and text flows into VectorPeak-style Mermaid |
 | `mint-interview-questions-processor` | Converts interview Q&A sections into collapsed accordions |
+| `mint-navigation-processor` | Maintains `docs.json` tabs, groups, page order, and route validation |
 | `mint-reference-processor` | Converts reference sections into categorized Tabs and Cards |
 | `mint-workflow-to-steps` | Backup skill only; converts workflows into Mintlify `<Steps>` when explicitly requested, and is not invoked by the main processor by default |
 

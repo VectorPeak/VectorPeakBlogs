@@ -1,7 +1,6 @@
 ---
 title: "MCP"
 description: "介绍 MCP 在 LangChain 项目中的作用、工具接入方式和项目实践注意点"
-icon: "plug"
 ---
 
 ## 1. LangChain使用MCP
@@ -48,19 +47,13 @@ if __name__ == "__main__":
     mcp.run(transport="sse")
 
 ```
-
-运行 server
-
-```python title="创建FastMCP实例，用于启动天气服务器SSE服务" icon="python"
+```python title="运行 server，创建FastMCP实例，用于启动天气服务器SSE服务" icon="python"
 # uv run server.py
 2025-08-20 10:27:26.789 | INFO     | __main__:<module>:36 - 启动 MCP SSE 天气服务器，监听 http://0.0.0.0:8000/sse
 ```
 
 ## 3. 创建 mcp配置文件
-
-mcp.json 文件内容如下：
-
-```python title="创建 mcp配置文件" icon="python"
+```python title="创建 mcp.json 配置文件" icon="python"
 {
   "mcpServers": {
     "weather": {

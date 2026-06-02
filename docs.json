@@ -79,9 +79,7 @@
             "group": "Agent Framework",
             "pages": [
               "Agent/Agent_Framework/Framework",
-              "Agent/Agent_Framework/Harness",
-              "Agent/Agent_Framework/LangChain",
-              "Agent/Agent_Framework/LangGraph"
+              "Agent/Agent_Framework/Harness"
             ]
           },
           {
@@ -90,6 +88,35 @@
               "Agent/Modern_Agent/openclaw",
               "Agent/Modern_Agent/hermes",
               "Agent/Modern_Agent/claude-code"
+            ]
+          },
+          {
+            "group": "LangChain",
+            "pages": [
+              "Agent/LangChain/LangChain",
+              "Agent/LangChain/Model Provider",
+              "Agent/LangChain/Prompt Template",
+              "Agent/LangChain/Parser",
+              "Agent/LangChain/LCEL",
+              "Agent/LangChain/Memory",
+              "Agent/LangChain/Tool",
+              "Agent/LangChain/Agent",
+              "Agent/LangChain/MCP",
+              "Agent/LangChain/RAG",
+              "Agent/LangChain/LangSmith",
+              "Agent/LangChain/LangServe"
+            ]
+          },
+          {
+            "group": "LangGraph",
+            "pages": [
+              "Agent/LangGraph/LangGraph",
+              "Agent/LangGraph/Agent & Tool",
+              "Agent/LangGraph/LangGraph Ecosystem",
+              "Agent/LangGraph/Low-Level API",
+              "Agent/LangGraph/Memory Management",
+              "Agent/LangGraph/LangGraph with MCP",
+              "Agent/LangGraph/Multi-Agent Architectures"
             ]
           }
         ]
@@ -173,21 +200,7 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/images/logo/vector_peak_light.png",

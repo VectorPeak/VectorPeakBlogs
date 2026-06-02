@@ -1,38 +1,38 @@
 ---
 title: "Low-Level API"
 description: "使用 LangGraph 底层 API 构建图，并进一步实现 ReAct 智能体"
-icon: "code"
 ---
 
 ## 1. 使用底层API构建图
-<Badge icon="clock" color="green">Written: 2026.06</Badge>
 ## 2. 图结构对象创建与使用
 
 ### 2.1 图结构概念
 
-LangGraph的宗旨是创建一个图结构，该图结构包含大模型、外部工具等，通过点线间的连接构成灵活的处理链路。基于该宗旨，LangGraph定义了一套由点、边、状态组成的有向有环的结构图语法。
+<Badge icon="clock" color="green">Written: 2026.06</Badge> LangGraph的宗旨是创建一个图结构，该图结构包含大模型、外部工具等，通过点线间的连接构成灵活的处理链路。基于该宗旨，LangGraph定义了一套由点、边、状态组成的有向有环的结构图语法
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758504633150-3238595b-a2d3-4a04-b735-ff11634f3d7d.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758504633150-3238595b-a2d3-4a04-b735-ff11634f3d7d.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
-### 2.2 节点（Nodes)
+### 2.2 节点(Nodes)
 
-任何可执行的功能包括大语言模型API，工具，甚至Agent都可以作为LangGraph图的点。
+任何可执行的功能包括大语言模型API，工具，甚至Agent都可以作为LangGraph图的点
 
-### 2.3 边（Edges）
+### 2.3 边(Edges)
 
-边通常负责传递数据，也有一些边负责进行逻辑控制，例如if-else的判断和选择，从而让整个图状结构更加丰富。
+边通常负责传递数据，也有一些边负责进行逻辑控制，例如if-else的判断和选择，从而让整个图状结构更加丰富
 
-### 2.4 State（状态）
+### 2.4 State(状态)
 
-LangGraph通过组合点和边去创建复杂的循环工作流程，节点产生的消息通过边传递给别的节点从而形成通路。为了维持节点和边之间的消息传递，LangGraph势必要对所有的消息进行统一管理，这就引出了概念“State（状态）”。
+LangGraph通过组合点和边去创建复杂的循环工作流程，节点产生的消息通过边传递给别的节点从而形成通路。为了维持节点和边之间的消息传递，LangGraph势必要对所有的消息进行统一管理，这就引出了概念“State(状态)”
 
-在LangGraph构建的流程中，每次执行都会启动一个状态，图中的节点在处理时会传递和修改该状态。这个状态不仅仅是一组静态数据，而是由每个节点的输出动态更新，然后影响循环内的后续操作，确保图通路顺畅。
+在LangGraph构建的流程中，每次执行都会启动一个状态，图中的节点在处理时会传递和修改该状态。这个状态不仅仅是一组静态数据，而是由每个节点的输出动态更新，然后影响循环内的后续操作，确保图通路顺畅
 
 ### 2.5 手动创建图流程
 
-我们先在不接入大模型的情况下构建一个加减法图工作流，我们这里自定义两个简单函数：一个是加法函数接收当前State并将其中的x值加1，另一个是减法函数接收当前State并将其中的x值减2，然后添加名为`addition`和`subtraction`的节点，并关联到两个函数上，最后构建出节点之间的边。
+我们先在不接入大模型的情况下构建一个加减法图工作流，我们这里自定义两个简单函数：一个是加法函数接收当前State并将其中的x值加1，另一个是减法函数接收当前State并将其中的x值减2，然后添加名为`addition`和`subtraction`的节点，并关联到两个函数上，最后构建出节点之间的边
 
-```python title="手动创建图流程" icon="python"
+```python title="手动创建图流程示例" icon="python" wrap expandable
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 builder = StateGraph(dict)
@@ -83,9 +83,8 @@ print(builder.nodes)
 print(graph.get_graph().print_ascii())
 ```
 
-执行结果如下
 
-```console title="打印图的可视化结构" icon="terminal"
+```console title="图结构可视化示例" icon="terminal" wrap
 {('subtraction', '__end__'), ('__start__', 'addition'), ('addition', 'subtraction')}
 {'addition': StateNodeSpec(runnable=addition(tags=None, recurse=True, explode_args=False, func_accepts={}), metadata=None, input_schema=<class 'dict'>, retry_policy=None, cache_policy=None, ends=(), defer=False), 'subtraction': StateNodeSpec(runnable=subtraction(tags=None, recurse=True, explode_args=False, func_accepts={}), metadata=None, input_schema=<class 'dict'>, retry_policy=None, cache_policy=None, ends=(), defer=False)}
  +-----------+
@@ -114,7 +113,7 @@ None
 
 除了控制台打印流程图外，也可以生成更加美观的Mermaid 代码，通过processon 编辑器查看
 
-```python title="打印图的可视化结构" icon="python"
+```python title="图结构可视化示例" icon="python" wrap
 # 打印图的可视化结构
 print(graph.get_graph().draw_mermaid())
 # 执行结果如下
@@ -138,13 +137,15 @@ graph TD;
 
 使用processon 编辑器查看
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758596247026-6963b93b-7827-407d-a058-11b566ddace9.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758596247026-6963b93b-7827-407d-a058-11b566ddace9.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
 ### 2.6 图对象运行
 
 当我们通过`builder.compile()`方法编译图后，编译后的`graph`对象提供了`invoke`方法，该方法用于启动图的执行。在图执行前我们需要通过`invoke`方法传递一个初始状态，这个状态作为图执行的起始输入：
 
-```python title="图对象运行" icon="python"
+```python title="图对象运行示例" icon="python" wrap
 # 定义一个初始状态字典，包含键值对"x": 5
 initial_state={"x": 5}
 # 调用graph对象的invoke方法，传入初始状态，执行图计算流程
@@ -152,9 +153,8 @@ result= graph.invoke(initial_state)
 print(f"最后的结果是:{result}")
 ```
 
-执行结果如下
 
-```console title="调用graph对象的invoke方法，传入初始状态，执行图计算流程" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 加法节点收到的初始值:{'x': 5}
 减法节点收到的初始值:{'x': 6}
 最后的结果是:{'x': 4}
@@ -162,13 +162,13 @@ print(f"最后的结果是:{result}")
 
 ## 3. 借助Pydantic构建稳定的State
 
-以上的写法虽然灵活但有一个致命缺陷，我们的State状态缺乏预定义的模式，节点可以在没有严格类型约束的情况下自由地读取和写入状态，这样的灵活性虽然有利于动态数据处理，但这也要求开发者在整个图的执行过程中保持对键和值的一致性管理（例如我们在加减法函数中返回的都是只包含键值对x的字典对象）。因为在任何节点中尝试访问State中不存在的键，会直接中断整个图的运行状态。
+以上的写法虽然灵活但有一个致命缺陷，我们的State状态缺乏预定义的模式，节点可以在没有严格类型约束的情况下自由地读取和写入状态，这样的灵活性虽然有利于动态数据处理，但这也要求开发者在整个图的执行过程中保持对键和值的一致性管理(例如我们在加减法函数中返回的都是只包含键值对x的字典对象)。因为在任何节点中尝试访问State中不存在的键，会直接中断整个图的运行状态
 
 ### 3.1 Pydantic基本使用
 
-通过集成pydantic中的`BaseModel`抽象类来定义状态State, 定义后的状态可以对键值对属性进行自动校验，我们编写如下代码，对 a 和 b 键定义不同的类型，错误的类型会报错。
+通过集成pydantic中的`BaseModel`抽象类来定义状态State, 定义后的状态可以对键值对属性进行自动校验，我们编写如下代码，对 a 和 b 键定义不同的类型，错误的类型会报错
 
-```python title="Pydantic基本使用" icon="python"
+```python title="Pydantic 基本使用示例" icon="python" wrap
 from pydantic import BaseModel
 class MyState(BaseModel):
     a: int
@@ -182,9 +182,8 @@ state = MyState(a="aaa")
 print(state.a)
 ```
 
-执行结果如下
 
-```console title="类型错误会报错" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 1
 default
 ……
@@ -196,9 +195,9 @@ a
 
 ### 3.2 Pydantic应用于StateGraph
 
-使用`Pydantic`对代码进行修改,采用如下方法编写的代码可以对状态键内容和属性进行约束，代码健壮性更强。
+使用`Pydantic`对代码进行修改,采用如下方法编写的代码可以对状态键内容和属性进行约束，代码健壮性更强
 
-```python title="Pydantic应用于StateGraph" icon="python"
+```python title="Pydantic 状态图示例" icon="python" wrap expandable
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 from pydantic import BaseModel
@@ -271,9 +270,8 @@ print(f"最后的结果是:{result}")
 
 ```
 
-执行结果如下
 
-```console title="调用graph对象的invoke方法，传入初始状态，执行图计算流程" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 {('subtraction', '__end__'), ('addition', 'subtraction'), ('__start__', 'addition')}
 {'addition': StateNodeSpec(runnable=addition(tags=None, recurse=True, explode_args=False, func_accepts={}), metadata=None, input_schema=<class 'dict'>, retry_policy=None, cache_policy=None, ends=(), defer=False), 'subtraction': StateNodeSpec(runnable=subtraction(tags=None, recurse=True, explode_args=False, func_accepts={}), metadata=None, input_schema=<class 'dict'>, retry_policy=None, cache_policy=None, ends=(), defer=False)}
  +-----------+
@@ -308,25 +306,26 @@ None
 |对比项|`TypedDict`|`BaseModel`(Pydantic)|
 |---|---|---|
 |来源|Python 标准库 (`typing`)|Pydantic 库|
-|定位|类型提示（轻量字典类型）|强类型数据模型（含验证逻辑）|
-|运行时检查|❌ 无运行时校验|✅ 自动校验字段类型、默认值等|
+|定位|类型提示(轻量字典类型)|强类型数据模型(含验证逻辑)|
+|运行时检查|无运行时校验|自动校验字段类型、默认值等|
 |继承自|`dict`|`BaseModel`|
-|性能|✅ 快（仅静态类型提示）|⚠️ 稍慢（需要解析和验证）|
-|序列化 / 反序列化|❌ 手动处理|✅ 自动 `.dict()`, `.json()`|
+|性能|快(仅静态类型提示)|稍慢(需要解析和验证)|
+|序列化 / 反序列化|手动处理|自动 `.dict()`, `.json()`|
 |用途场景|简单数据结构定义|需要验证、解析、约束的模型|
-|LangGraph 支持|✅ 官方推荐（State 类型）|⚠️ 不推荐（除非你自己控制模型转换）|
+|LangGraph 支持|官方推荐(State 类型)|不推荐(除非你自己控制模型转换)|
 
 ## 4. 流程控制语句
 
 ### 4.1 条件判断
 
-使用langgraph构建了一个状态图，根据输入数值的奇偶性执行不同节点。check_x接收并传递状态，is_even判断奇偶，handle_even和handle_odd分别处理偶数和奇数情况，最终输出结果。
+使用langgraph构建了一个状态图，根据输入数值的奇偶性执行不同节点。check_x接收并传递状态，is_even判断奇偶，handle_even和handle_odd分别处理偶数和奇数情况，最终输出结果
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758596659797-173bdfcd-1a80-4964-9588-f69c9bc240dc.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758596659797-173bdfcd-1a80-4964-9588-f69c9bc240dc.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
-代码如下：
 
-```python title="条件判断" icon="python"
+```python title="条件判断示例" icon="python" wrap expandable
 from typing import Optional
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
@@ -433,34 +432,34 @@ graph = builder.compile()
 graph.get_graph().draw_png('./graph.png')
 
 # 测试用例：输入偶数4
-logger.info("输入 x=4（偶数）")
+logger.info("输入 x=4(偶数)")
 graph.invoke(MyState(x=4))
 
 # 测试用例：输入奇数3
-logger.info("输入 x=3（奇数）")
+logger.info("输入 x=3(奇数)")
 graph.invoke(MyState(x=3))
 ```
 
-执行结果如下
 
-```console title="测试用例：输入奇数3" icon="terminal"
-2025-09-23 09:39:35.510 | INFO     | __main__:<module>:57 - 输入 x=4（偶数）
+```console title="执行结果如下" icon="terminal" wrap
+2025-09-23 09:39:35.510 | INFO     | __main__:<module>:57 - 输入 x=4(偶数)
 2025-09-23 09:39:35.515 | INFO     | __main__:check_x:18 - [check_x] Received state: x=4 result=None
 2025-09-23 09:39:35.515 | INFO     | __main__:handle_even:27 - [handle_even] x 是偶数
-2025-09-23 09:39:35.516 | INFO     | __main__:<module>:59 - 输入 x=3（奇数）
+2025-09-23 09:39:35.516 | INFO     | __main__:<module>:59 - 输入 x=3(奇数)
 2025-09-23 09:39:35.516 | INFO     | __main__:check_x:18 - [check_x] Received state: x=3 result=None
 2025-09-23 09:39:35.517 | INFO     | __main__:handle_odd:32 - [handle_odd] x 是奇数
 ```
 
 ### 4.2 循环语句
 
-定义了一个基于循环流程，通过increment节点不断将状态中的x值加1，直到is_done条件判断x > 10成立时停止。初始x=6，每次执行increment节点更新状态，最终输出x=11。
+定义了一个基于循环流程，通过increment节点不断将状态中的x值加1，直到is_done条件判断x > 10成立时停止。初始x=6，每次执行increment节点更新状态，最终输出x=11
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758596729546-66dd1eea-6789-432b-921f-b819d626a376.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758596729546-66dd1eea-6789-432b-921f-b819d626a376.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
-代码如下
 
-```python title="循环语句" icon="python"
+```python title="循环语句示例" icon="python" wrap expandable
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 from loguru import logger
@@ -524,9 +523,8 @@ logger.info(f"[最终结果] -> x = {final_state['x']}")
 
 ```
 
-执行结果如下
 
-```console title="初始化循环并执行，直到满足结束条件" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 2025-09-23 11:00:43.423 | INFO     | __main__:<module>:65 - 执行循环直到 x > 10，初始x = 6
 2025-09-23 11:00:43.427 | INFO     | __main__:increment:30 - [increment] 当前 x = 6
 2025-09-23 11:00:43.427 | INFO     | __main__:increment:30 - [increment] 当前 x = 7
@@ -538,13 +536,14 @@ logger.info(f"[最终结果] -> x = {final_state['x']}")
 
 ### 4.3 判断循环复合图
 
-定义了一个基于状态图的流程控制系统。通过判断数值 x 的奇偶性，决定执行递增或结束流程。使用 langgraph 构建状态机，check_x 节点检查 x 值，is_even 判断分支，偶数时递增后循环回检查节点，奇数时结束流程。
+定义了一个基于状态图的流程控制系统。通过判断数值 x 的奇偶性，决定执行递增或结束流程。使用 langgraph 构建状态机，check_x 节点检查 x 值，is_even 判断分支，偶数时递增后循环回检查节点，奇数时结束流程
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758597109547-34741ad6-7757-4216-a80d-098c74682c45.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1758597109547-34741ad6-7757-4216-a80d-098c74682c45.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
-代码如下
 
-```python title="判断循环复合图" icon="python"
+```python title="判断循环复合图示例" icon="python" wrap expandable
 from loguru import logger
 from pydantic import BaseModel
 from typing import Optional
@@ -594,7 +593,7 @@ def increment(state: BranchLoopState) -> BranchLoopState:
         state (BranchLoopState): 包含当前 x 值的状态对象。
 
     返回:
-        BranchLoopState: 返回更新后的状态对象（x+1）。
+        BranchLoopState: 返回更新后的状态对象(x+1)。
     """
     logger.info(f"[increment] x 是偶数，执行 +1 → {state.x + 1}")
     return BranchLoopState(x=state.x + 1)
@@ -637,45 +636,43 @@ graph = builder.compile()
 graph.get_graph().draw_png('./graph.png')
 
 # 测试用例1：从偶数开始，进入循环直到变为奇数
-logger.info("初始 x=6（偶数，进入循环）")
+logger.info("初始 x=6(偶数，进入循环)")
 final_state1 = graph.invoke(BranchLoopState(x=6))
 logger.info("[最终结果1] ->", final_state1)
 
 # 测试用例2：从奇数开始，直接结束流程
-logger.info("初始 x=3（奇数，直接 done）")
+logger.info("初始 x=3(奇数，直接 done)")
 final_state2 = graph.invoke(BranchLoopState(x=3))
 logger.info("[最终结果2] ->", final_state2)
 
 ```
 
-执行结果如下
 
-```console title="测试用例2：从奇数开始，直接结束流程" icon="terminal"
-2025-09-23 11:09:11.364 | INFO     | __main__:<module>:38 - 初始 x=6（偶数，进入循环）
+```console title="执行结果如下" icon="terminal" wrap
+2025-09-23 11:09:11.364 | INFO     | __main__:<module>:38 - 初始 x=6(偶数，进入循环)
 2025-09-23 11:09:11.369 | INFO     | __main__:check_x:11 - [check_x] 当前 x = 6
 2025-09-23 11:09:11.369 | INFO     | __main__:increment:16 - [increment] x 是偶数，执行 +1 → 7
 2025-09-23 11:09:11.370 | INFO     | __main__:check_x:11 - [check_x] 当前 x = 7
 2025-09-23 11:09:11.370 | INFO     | __main__:done:19 - [done] x 是奇数，流程结束
 2025-09-23 11:09:11.370 | INFO     | __main__:<module>:40 - [最终结果1] ->
-2025-09-23 11:09:11.370 | INFO     | __main__:<module>:41 - 初始 x=3（奇数，直接 done）
+2025-09-23 11:09:11.370 | INFO     | __main__:<module>:41 - 初始 x=3(奇数，直接 done)
 2025-09-23 11:09:11.371 | INFO     | __main__:check_x:11 - [check_x] 当前 x = 3
 2025-09-23 11:09:11.371 | INFO     | __main__:done:19 - [done] x 是奇数，流程结束
 2025-09-23 11:09:11.371 | INFO     | __main__:<module>:43 - [最终结果2] ->
 ```
 
-LangGraph 会把所有节点名、状态字段、通道名放在一个命名空间中处理，为了避免歧义，它会严格检查有没有冲突，最保险的做法是:节点名不要与字段名重复，既如果使用 state.result =“done”，也不要有“result”这个节点。
+LangGraph 会把所有节点名、状态字段、通道名放在一个命名空间中处理，为了避免歧义，它会严格检查有没有冲突，最保险的做法是:节点名不要与字段名重复，既如果使用 state.result =“done”，也不要有“result”这个节点
 
 ## 5. 子图
 
-在LangGraph中，一个Graph除了可以单独使用，还可以作为一个Node，嵌入到一个Graph中。这种用法就称为子图。通过子图，我们可以更好的重用Graph，构建更复杂的工作流。尤其在构建多Agent系统时非常有用。在大型项目中，通常都是由一个团队专门开发Agent，再通过其他团队来完成Agent整合。
+在LangGraph中，一个Graph除了可以单独使用，还可以作为一个Node，嵌入到一个Graph中。这种用法就称为子图。通过子图，我们可以更好的重用Graph，构建更复杂的工作流。尤其在构建多Agent系统时非常有用。在大型项目中，通常都是由一个团队专门开发Agent，再通过其他团队来完成Agent整合
 
-使用子图时，基本和使用Node没有太多的区别。唯一需要注意的是，当触发了SubGraph代表的Node后，实际上是相当于重新调用了一次subgraph.invoke(state)方法。
+使用子图时，基本和使用Node没有太多的区别。唯一需要注意的是，当触发了SubGraph代表的Node后，实际上是相当于重新调用了一次subgraph.invoke(state)方法
 
-接下来我们定义一个子图节点处理函数 sub_node，它接收一个状态对象并返回包含子图响应消息的新状态。该函数被集成到一个使用 langgraph 构建的图结构中，最终执行图并输出结果。
+接下来我们定义一个子图节点处理函数 sub_node，它接收一个状态对象并返回包含子图响应消息的新状态。该函数被集成到一个使用 langgraph 构建的图结构中，最终执行图并输出结果
 
-代码如下：
 
-```python title="子图" icon="python"
+```python title="子图示例" icon="python" wrap expandable
 from operator import add
 from typing import TypedDict, Annotated
 from langgraph.constants import END
@@ -719,9 +716,8 @@ print(graph.invoke({"messages": ["hello subgraph"]}))
 
 ```
 
-执行结果如下
 
-```console title="执行图并打印结果" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 {'messages': ['hello subgraph', 'hello subgraph', 'response from subgraph']}
 ```
 
@@ -729,39 +725,39 @@ print(graph.invoke({"messages": ["hello subgraph"]}))
 
 ### 6.1 概念介绍
 
-在LangGraph 是个“有状态图（state graph）”的工作流框架，每个节点可以是：
+在LangGraph 是个“有状态图(state graph)”的工作流框架，每个节点可以是：
 
-- 模型调用（LLM、工具调用）
+- 模型调用(LLM、工具调用)
 
 - 程序逻辑
 
-- 人类反馈（HITL）
+- 人类反馈(HITL)
 
-HITL 就是把“人类操作”当作图里的一个节点（step），在运行时需要停下来等待人类确认、输入或决策，然后再继续执行。
+HITL 就是把“人类操作”当作图里的一个节点(step)，在运行时需要停下来等待人类确认、输入或决策，然后再继续执行
 
 ### 6.2 典型场景
 
-1. 确认操作：比如智能体打算删除数据或执行危险操作 → 先让人确认（Yes/No）。
+1. 确认操作：比如智能体打算删除数据或执行危险操作 → 先让人确认(Yes/No)
 
-2. 信息补充：模型缺少必要参数时，提示人类补全，比如填写 API Key、选择文件。
+2. 信息补充：模型缺少必要参数时，提示人类补全，比如填写 API Key、选择文件
 
-3. 审核 / 修改：模型生成的回答需要人审查、修改，再提交给用户。
+3. 审核 / 修改：模型生成的回答需要人审查、修改，再提交给用户
 
-4. 主动决策分支：工作流里分叉走向不确定 → 由人来选择接下来走哪条分支。
+4. 主动决策分支：工作流里分叉走向不确定 → 由人来选择接下来走哪条分支
 
 ### 6.3 实现要点
 
-1. 必须指定一个checkpoint短期记忆，否则无法保存任务状态。
+1. 必须指定一个checkpoint短期记忆，否则无法保存任务状态
 
-2. 在执行Graph任务时，必须指定一个带有thread_id的配置项，指定线程ID。之后才能通过线程ID，指定恢复线程。
+2. 在执行Graph任务时，必须指定一个带有`thread_id`的配置项，指定线程ID。之后才能通过线程ID，指定恢复线程
 
-3. 在任务执行过程中，通过interrupt()方法，中断任务，等待确认。
+3. 在任务执行过程中，通过`interrupt()`方法，中断任务，等待确认
 
-4. 在人类确认之后，使用Graph提交一个resume=True的Command指令，恢复任务，并继续进行。
+4. 在人类确认之后，使用Graph提交一个resume=True的`Command`指令，恢复任务，并继续进行
 
 ### 6.4 示例代码
 
-```python title="示例代码" icon="python"
+```python title="示例代码" icon="python" wrap expandable
 from typing import TypedDict, Annotated,Literal
 from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import InMemorySaver
@@ -821,14 +817,14 @@ print(final_result["messages"][-1].content)
 
 ### 7.1 概念介绍
 
-在 LangGraph 中，**Time Travel** 是一个允许你“回到对话的某个历史状态点，并从那里重新执行”的功能。
-它依赖 **Checkpointer（检查点系统）**，比如 `MemorySaver`、数据库持久化 saver 等，把每一步执行的 **状态（state）** 保存下来。
+在 LangGraph 中，**Time Travel** 是一个允许你“回到对话的某个历史状态点，并从那里重新执行”的功能
+它依赖 **Checkpointer(检查点系统)**，比如 `MemorySaver`、数据库持久化 saver 等，把每一步执行的 **状态(state)** 保存下来
 
 可以类比成：
 
 - 普通对话：只能按顺序走下去
 
-- 有时间回溯：可以跳到某一步（比如第 3 次工具调用前），从那个状态继续，甚至尝试不同的分支
+- 有时间回溯：可以跳到某一步(比如第 3 次工具调用前)，从那个状态继续，甚至尝试不同的分支
 
 ### 7.2 使用场景
 
@@ -842,37 +838,38 @@ print(final_result["messages"][-1].content)
 
 ### 7.3 实现要点
 
-- 在运行 Graph 时，需要提供初始的输入消息。
+- 在运行 Graph 时，需要提供初始的输入消息
 
-- 运行时，指定 thread_id 线程 ID。并且要基于这个线程 ID，再指定一个 checkpoint 检查点。执行后将在每一个 Node 执行后，生成一个 check_point_id
+- 运行时，指定 `thread_id` 线程 ID。并且要基于这个线程 ID，再指定一个 checkpoint 检查点。执行后将在每一个 Node 执行后，生成一个 check_point_id
 
-- 指定 thread_id 和 check_point_id，进行任务重演。重演前，可以选择更新 state，当然，如果没问题，也可以不指定。
+- 指定 `thread_id` 和 check_point_id，进行任务重演。重演前，可以选择更新 state，当然，如果没问题，也可以不指定
 
 ## 8. 综合实践
 
-终极目标是使用LangGraph 底层 API 复现高级API `create_react_agent` 预构建ReACT图。
+终极目标是使用LangGraph 底层 API 复现高级API `create_react_agent` 预构建ReACT图
 
 实现一个带人工审核的AI助手工作流。主要功能包括：
 
-- 调用模型：call_model 函数使用绑定工具的语言模型生成回复。
+- 调用模型：call_model 函数使用绑定工具的语言模型生成回复
 
-- 人工审核：human_review 函数在执行工具前请求用户确认，若拒绝则终止流程。
+- 人工审核：human_review 函数在执行工具前请求用户确认，若拒绝则终止流程
 
-- 工具执行：通过 ToolNode 执行如天气查询等工具调用。
+- 工具执行：通过 `ToolNode` 执行如天气查询等工具调用
 
-- 状态管理：利用 StateGraph 构建节点流程，支持对话状态保存与恢复。
+- 状态管理：利用 `StateGraph` 构建节点流程，支持对话状态保存与恢复
 
 整体流程如下：
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1759501842750-67d188d7-e562-4cda-8c7f-fdf31560767d.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1759501842750-67d188d7-e562-4cda-8c7f-fdf31560767d.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
 ### 8.1 最简单的聊天机器人
 
-我们先定义一个基于本地大语言模型的聊天机器人。chatbot 函数接收当前对话状态，调用 llm.invoke() 生成回复，并返回新消息。整体通过 StateGraph 构建工作流，实现从开始到结束的自动对话处理。
+我们先定义一个基于本地大语言模型的聊天机器人。chatbot 函数接收当前对话状态，调用 llm.invoke() 生成回复，并返回新消息。整体通过 `StateGraph` 构建工作流，实现从开始到结束的自动对话处理
 
-代码如下
 
-```python title="最简单的聊天机器人" icon="python"
+```python title="聊天机器人示例" icon="python" wrap
 from typing import TypedDict, Annotated
 from langchain_ollama import ChatOllama
 from langgraph.constants import START, END
@@ -908,21 +905,22 @@ response1 = graph.invoke({"messages": ["北京天气怎么样"]})
 print(response1["messages"][-1].content)
 ```
 
-执行结果如下
 
-```console title="编译图结构，并绘制可视化图表" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 对不起，我无法获取北京的天气信息，可以查看北京气象局或使用天气预报应用。
 ```
 
 整体流程如下
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1759842510576-3479908c-4f79-4a18-aa2f-2eddbaeeb123.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1759842510576-3479908c-4f79-4a18-aa2f-2eddbaeeb123.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
 ### 8.2 添加提示词与工具
 
 定义工具函数
 
-```python title="添加提示词与工具" icon="python"
+```python title="提示词与工具示例" icon="python" wrap expandable
 import json
 import os
 import httpx
@@ -1003,7 +1001,7 @@ def write_file(content):
 
 agent 代码如下
 
-```python title="加载环境变量配置" icon="python"
+```python title="加载环境变量配置" icon="python" wrap expandable
 from typing import TypedDict, Annotated
 from langchain_core.messages import SystemMessage
 from langchain_ollama import ChatOllama
@@ -1029,14 +1027,14 @@ def chat_node(state: AgentState):
                     1. 查询天气信息
                     2. 结果写入文件
                     请根据用户的需求，选择合适的工具来完成任务。回答要准确、友好、专业。"""
-    # 构建完整的消息列表（系统提示词 + 用户消息）,如果第一条消息不是系统消息，则添加系统提示词
+    # 构建完整的消息列表(系统提示词 + 用户消息),如果第一条消息不是系统消息，则添加系统提示词
     if not any(isinstance(msg, SystemMessage) for msg in messages):
         messages = [SystemMessage(
             content=system_prompt)] + messages
     result = llm_with_tools.invoke(messages)
     return {"messages": [result]}
 
-# 定义工具节点（系统预置 ToolNode 会自动解析 tool_calls）
+# 定义工具节点(系统预置 ToolNode 会自动解析 tool_calls)
 tool_node = ToolNode(tools=tools)
 
 # 动态路由：chat_node → tool_node 或 END
@@ -1070,22 +1068,22 @@ response1 = graph.invoke({"messages": ["北京天气怎么样"]})
 print(response1["messages"][-1].content)
 ```
 
-执行结果如下
 
-```console title="编译图结构，并绘制可视化图表" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 2025-10-08 12:02:46.965 | INFO     | tools:get_weather:61 - 查询天气结果：{"coord": {"lon": 116.3972, "lat": 39.9075}, "weather": [{"id": 501, "main": "Rain", "description": "\u4e2d\u96e8", "icon": "10d"}], "base": "stations", "main": {"temp": 12.91, "feels_like": 11.48, "temp_min": 12.91, "temp_max": 12.91, "pressure": 1026, "humidity": 47, "sea_level": 1026, "grnd_level": 1021}, "visibility": 10000, "wind": {"speed": 1.67, "deg": 47, "gust": 3.99}, "rain": {"1h": 2.05}, "clouds": {"all": 100}, "dt": 1759896063, "sys": {"country": "CN", "sunrise": 1759875426, "sunset": 1759916800}, "timezone": 28800, "id": 1816670, "name": "Beijing", "cod": 200}
 北京当前天气为中雨，温度为12.91摄氏度，湿度为47%，风速为1.67米/秒。
 ```
 
 此时项目图结构为
 
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1759896219304-2766d022-16a2-429d-b1f3-1a91f59861d8.png)
+<Frame caption="LangGraph 图结构示意图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1759896219304-2766d022-16a2-429d-b1f3-1a91f59861d8.png" alt="LangGraph 图结构示意图" />
+</Frame>
 
 ### 8.3 添加 HITL 环节
 
-代码如下
 
-```python title="添加 HITL 环节" icon="python"
+```python title="HITL 示例" icon="python" wrap expandable
 from typing import TypedDict, Annotated
 import json
 from langchain_core.messages import SystemMessage, ToolMessage
@@ -1160,7 +1158,7 @@ def run_with_approval():
     print("【用户】北京天气怎么样\n")
     result = graph.invoke({"messages": ["北京天气怎么样"]}, config)
 
-    # 检查是否中断（等待人工确认）
+    # 检查是否中断(等待人工确认)
     snapshot = graph.get_state(config)
 
     if snapshot.next:  # 如果有下一个节点，说明被中断了
@@ -1177,7 +1175,7 @@ def run_with_approval():
 
             if approval in ['yes', 'y']:
                 print("工具调用已批准，继续执行...\n")
-                # 继续执行（resume）
+                # 继续执行(resume)
                 result = graph.invoke(None, config)
 
             elif approval in ['no', 'n']:
@@ -1207,7 +1205,7 @@ if __name__ == "__main__":
 
 代码执行结果如下
 
-```console title="测试运行" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 【用户】北京天气怎么样
 
 工具调用需要人工确认
@@ -1223,22 +1221,21 @@ if __name__ == "__main__":
 最终回复:
 北京的天气情况如下：
 
-- **天气状况**：多云（Clouds）
+- **天气状况**：多云(Clouds)
 - **温度**：当前温度为 14.94°C，体感温度为 14.08°C
 - **湿度**：61%
-- **风速**：1.59 m/s，风向为 36 度（东北方向）
+- **风速**：1.59 m/s，风向为 36 度(东北方向)
 - **能见度**：10,000 米
-- **日出时间**：1760480655（UTC+8）
-- **日落时间**：1760520954（UTC+8）
+- **日出时间**：1760480655(UTC+8)
+- **日落时间**：1760520954(UTC+8)
 
 如需进一步的信息或操作，请告诉我！
 ```
 
 ### 8.4 添加时间回溯
 
-代码如下
 
-```python title="添加时间回溯" icon="python"
+```python title="时间回溯示例" icon="python" wrap expandable
 from typing import TypedDict, Annotated
 from langchain_core.messages import SystemMessage, AIMessage
 from langchain_ollama import ChatOllama
@@ -1274,7 +1271,7 @@ def call_model(state: AgentState):
         state (AgentState): 包含当前会话中所有消息的状态对象。
 
     返回:
-        dict: 新增模型响应后的更新状态（仅追加最新一条回复）。
+        dict: 新增模型响应后的更新状态(仅追加最新一条回复)。
     """
     system_prompt = SystemMessage("你是一个AI助手，可以依据用户提问产生回答，你还具备调用天气函数的能力")
     response = model.invoke([system_prompt] + state["messages"])
@@ -1425,9 +1422,8 @@ print("\n=== 第二次结果 ===")
 print(response2["messages"][-1].content)
 ```
 
-执行结果如下
 
-```console title="从第二个检查点恢复并注入新问题" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap expandable
 ==================================================
 第一轮对话：询问北京天气
 ==================================================

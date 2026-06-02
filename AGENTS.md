@@ -27,18 +27,59 @@
 
 ## Mintlify 本地启动
 
-使用 Node `22.22.3` 启动
+Windows 下优先显式使用 `mint.cmd`，不要只写裸命令 `mint`
+
+已验证环境：
+
+- Node `22.22.3`
+- npm `10.9.8`
+- Mint CLI `4.2.588`
+- Mint client `0.0.2997`
+
+当前 Mint CLI 的 `mint.cmd dev --help` 未列出 `--port` 参数，本地预览优先使用默认端口启动
 
 ```powershell
 cd /d E:\Github\VectorPeak\VectorPeakBlogs
-mint dev --port 3000 --no-open
+mint.cmd dev --no-open
 ```
 
 本地地址：
 
 - `http://localhost:3000`
 
-验证时以 `http://localhost:3000` 返回 HTTP `200` 为准
+验证时优先使用 `localhost`：
+
+```powershell
+curl.exe -I --max-time 10 http://localhost:3000/
+curl.exe -I --max-time 10 "http://localhost:3000/Agent/LangChain/Model%20Provider"
+```
+
+以返回 HTTP `200 OK` 为准
+
+如果浏览器报 `ERR_CONNECTION_REFUSED`，通常不是 Node 损坏，而是 Mint dev 服务没有监听端口，或卡在 `preparing local preview...` 阶段。先清理卡住的 Mint 相关进程，再重新启动：
+
+```powershell
+$procs = Get-CimInstance Win32_Process | Where-Object {
+  ($_.CommandLine -match 'mint\.cmd dev|@mintlify\\cli|mintlify') -and $_.ProcessId -ne $PID
+}
+$procs | Select-Object ProcessId,Name,CommandLine
+foreach ($p in $procs) {
+  Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
+}
+mint.cmd dev --no-open
+```
+
+如果需要后台启动并保留日志：
+
+```powershell
+$project = 'E:\Github\VectorPeak\VectorPeakBlogs'
+$log = Join-Path $project '.mint-dev.combined.log'
+$cmd = '/c cd /d "' + $project + '" && mint.cmd dev --no-open > "' + $log + '" 2>&1'
+$p = Start-Process -FilePath 'cmd.exe' -ArgumentList $cmd -WindowStyle Hidden -PassThru
+Set-Content -Path (Join-Path $project '.mint-dev.pid') -Value $p.Id -Encoding ascii
+```
+
+看到日志里出现 `preview ready` 后，再访问 `http://localhost:3000`
 
 ## 详细规则
 

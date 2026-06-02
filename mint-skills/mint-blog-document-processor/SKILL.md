@@ -7,6 +7,8 @@ description: Mintlify MDX document processor. Always run mint-blog-formatter fir
 
 Use this skill when the user provides an `.mdx` path and asks for document-level processing.
 
+For `docs.json` navigation work such as tabs, groups, page order, route validation, or group icons, use `../companion-skills/mint-navigation-processor/SKILL.md` instead. This skill owns single-document MDX processing, not site navigation.
+
 ## Current Scope
 
 0. Required blog formatting:

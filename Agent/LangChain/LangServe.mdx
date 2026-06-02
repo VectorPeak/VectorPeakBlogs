@@ -1,14 +1,12 @@
 ---
 title: "LangServe"
 description: "介绍 LangServe 的服务化定位、FastAPI 集成方式和与 LangGraph Platform 的区别"
-icon: "network-wired"
 ---
 
 ## 1. LangServe
-<Badge icon="clock" color="green">Written: 2026.06</Badge>
 ## 2. LangServe介绍
 
-**LangServe** 是 LangChain 官方提供的一个工具，用于 **把 LangChain 的 Chain/Agent 包装成 API 服务**，可以直接部署成 HTTP 接口。
+<Badge icon="clock" color="green">Written: 2026.06</Badge> **LangServe** 是 LangChain 官方提供的一个工具，用于 **把 LangChain 的 Chain/Agent 包装成 API 服务**，可以直接部署成 HTTP 接口
 
 ### 2.1 组件功能
 
@@ -16,7 +14,7 @@ icon: "network-wired"
 
 - 避免手写 FastAPI/Flask 等接口代码
 
-- 自动生成 OpenAPI 文档（Swagger UI）和 Playground（交互式测试）
+- 自动生成 OpenAPI 文档(Swagger UI)和 Playground(交互式测试)
 
 ### 2.2 核心优势
 
@@ -24,19 +22,21 @@ icon: "network-wired"
 
 - 高性能：支持并发请求和高效推理，满足生产环境需求；
 
-- 灵活扩展：可与其他工具（如 LangChain）无缝集成，构建复杂 AI 应用。
+- 灵活扩展：可与其他工具(如 LangChain)无缝集成，构建复杂 AI 应用
 
 ## 3. 使用实践
 
 ### 3.1 安装 LangServe
 
-langserve 支撑客户端和服务端分离部署使用，也可以将客户端和服务端放在一个环境运行。
+langserve 支撑客户端和服务端分离部署使用，也可以将客户端和服务端放在一个环境运行
 
 ```python title="安装 LangServe" icon="python"
 pip install "langserve[all]"
 ```
 
-或者使用 pip install “langserve[client]” 安装客户端代码，使用pip install “langserve[server]” 安装服务器端代码。
+或者使用 `pip install “langserve[client]”` 安装客户端代码
+
+使用`pip install “langserve[server]”` 安装服务器端代码
 
 ### 3.2 创建 Chain
 
@@ -87,10 +87,7 @@ if __name__ == "__main__":
 ## 4. 访问验证
 
 ### 4.1 启动服务
-
-执行 main.py 文件即可启动服务，控制台打印如下内容：
-
-```console title="启动服务" icon="terminal"
+```console title="执行 main.py 文件即可启动服务，控制台打印如下内容" icon="terminal"
 INFO:     Started server process [192489]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
@@ -111,28 +108,30 @@ LANGSERVE: See all available routes at /docs/
 ```
 
 ### 4.2 访问接口文档
-
-访问[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)获取接口文档内容，如果提示pydantic.errors.PydanticUserError，可尝试降低 fastapi 版本。
-
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1757772232885-01489bf0-3763-4a0c-afa4-59182d170c17.png)
+<Frame caption="访问[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)获取接口文档内容(如果提示pydantic.errors.PydanticUserError，可尝试降低 fastapi 版本)">
+  <img
+    src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1757772232885-01489bf0-3763-4a0c-afa4-59182d170c17.png"
+    alt="访问接口文档"
+  />
+</Frame>
 
 ### 4.3 访问程序 web 页面
-
-直接访问[http://127.0.0.1:8000/translation/playground/](http://127.0.0.1:8000/translation/playground/)即可通过浏览器进行交互
-
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1757772295185-3f104cbe-adf7-4a04-8fd4-ace10de86c47.png)
+<Frame caption="直接访问[http://127.0.0.1:8000/translation/playground/](http://127.0.0.1:8000/translation/playground/) 即可通过浏览器进行交互">
+  <img
+    src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1757772295185-3f104cbe-adf7-4a04-8fd4-ace10de86c47.png"
+    alt="访问程序 web 页面"
+  />
+</Frame>
 
 ### 4.4 访问 API 接口
+<Frame caption="除了支持 web 界面访问外，同样也支持 api 接口调用">
+  <img
+    src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1757772751329-642f41b3-4fb9-4581-9ea7-fa35b356896b.png"
+    alt="获取请求示例："
+  />
+</Frame>
 
-除了支持 web 界面访问外，同样也支持 api 接口调用。
-
-获取请求示例：
-
-![](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/png/2308212/1757772751329-642f41b3-4fb9-4581-9ea7-fa35b356896b.png)
-
-访问验证：
-
-```python title="访问 API 接口" icon="python"
+```python title="访问 API 接口进行验证" icon="terminal"
 curl -X 'POST' \
   'http://127.0.0.1:8000/translation/invoke' \
   -H 'accept: application/json' \
@@ -162,8 +161,6 @@ print(client.invoke({"input": "你好", "language": "法语"}))
 
 ```
 
-执行结果如下：
-
-```console title="客户端访问" icon="terminal"
+```console title="执行结果如下" icon="terminal"
 Bonjour
 ```

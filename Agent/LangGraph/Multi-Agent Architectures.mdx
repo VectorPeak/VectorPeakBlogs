@@ -1,39 +1,37 @@
 ---
 title: "Multi-Agent Architectures"
 description: "介绍 LangGraph 中多智能体架构的常见模式、适用场景和项目实践拆分方式"
-icon: "users"
 ---
 
 ## 1. 多智能体架构项目实践
-<Badge icon="clock" color="green">Written: 2026.06</Badge>
-在 LangChain 体系中，LangChain 主要集成了和大语言模型的交互能力，而 LangGraph 主要实现复杂的流程调度。将这两个能力结合起来，就可以实现一个多智能体架构 (Multi-Agent Architecture)，它不是让一个大模型“无所不能”，而是通过 多个专精的 Agent 协作 来完成更复杂的任务。
+<Badge icon="clock" color="green">Written: 2026.06</Badge> 在 LangChain 体系中，LangChain 主要集成了和大语言模型的交互能力，而 LangGraph 主要实现复杂的流程调度。将这两个能力结合起来，就可以实现一个多智能体架构 (Multi-Agent Architecture)，它不是让一个大模型“无所不能”，而是通过 多个专精的 Agent 协作 来完成更复杂的任务
 
 ## 2. 多智能体架构介绍
 
 ### 2.1 什么是多智能体架构
 
-在 LangGraph 里，Agent 就是一个 可调用的节点，通常封装了一个 LLM + 工具调用逻辑。
-多智能体架构 = 多个 Agent 节点组成一个图 (Graph)，它们通过消息传递、条件跳转和记忆 (Memory) 协作。
+在 LangGraph 里，Agent 就是一个 可调用的节点，通常封装了一个 LLM + 工具调用逻辑
+多智能体架构 = 多个 Agent 节点组成一个图 (Graph)，它们通过消息传递、条件跳转和记忆 (Memory) 协作
 
-对比：
+**对比：**
 
 - 单智能体 → “一个大模型，负责所有决策”
 
 - 多智能体 → “多个小模型/角色，分工明确，互相调用”
 
-好处：
+**好处：**
 
-1. 解耦复杂任务 → 每个 Agent 只解决自己领域的问题。
+1. 解耦复杂任务 → 每个 Agent 只解决自己领域的问题
 
-2. 可扩展 → 可以动态增加新 Agent。
+2. 可扩展 → 可以动态增加新 Agent
 
-3. 更可控 → 通过人类在闭环 (HITL)、时间回溯 (Time Travel) 管理执行流程。
+3. 更可控 → 通过人类在闭环 (HITL)、时间回溯 (Time Travel) 管理执行流程
 
 ### 2.2 常见多智能体组合方式
 
 官方文档为我们总结了常用的多智能体组合方式和使用场景，具体可参考官方文档：[https://langchain-ai.github.io/langgraph/concepts/multi_agent/#multi-agent-architectures](https://langchain-ai.github.io/langgraph/concepts/multi_agent/#multi-agent-architectures)
 
-### 2.3 Single Agent（单智能体）
+### 2.3 Single Agent(单智能体)
 
 结构：
 
@@ -45,7 +43,7 @@ icon: "users"
 
 - 简单对话助手
 
-- 单一领域（天气查询、SQL 问答、知识库 QA）
+- 单一领域(天气查询、SQL 问答、知识库 QA)
 
 例子：
 
@@ -53,7 +51,7 @@ icon: "users"
 
 - “翻译一句话” → LLM 调用 `translator()`
 
-### 2.4 Network（网络型）
+### 2.4 Network(网络型)
 
 结构：
 
@@ -63,7 +61,7 @@ icon: "users"
 
 使用场景：
 
-- 多视角协作（头脑风暴）
+- 多视角协作(头脑风暴)
 
 - 并行搜索/汇总信息
 
@@ -81,19 +79,19 @@ icon: "users"
 
     - 互相交流 → 给出综合分析
 
-### 2.5 Supervisor（监督者型）
+### 2.5 Supervisor(监督者型)
 
 结构：
 
-- 一个主控 Agent（Supervisor），调度其他 Agent
+- 一个主控 Agent(Supervisor)，调度其他 Agent
 
 - 子 Agent 只负责各自领域
 
 使用场景：
 
-- 企业助手（IT、HR、财务多领域）
+- 企业助手(IT、HR、财务多领域)
 
-- 智能客服（分配给不同领域专家）
+- 智能客服(分配给不同领域专家)
 
 例子：
 
@@ -105,7 +103,7 @@ icon: "users"
 
     - Supervisor → 路由给 IT Agent
 
-### 2.6 Supervisor (as tools)（监督者作为工具）
+### 2.6 Supervisor (as tools)(监督者作为工具)
 
 结构：
 
@@ -117,7 +115,7 @@ icon: "users"
 
 - 单一 LLM 核心，但可以调用领域专家
 
-- 类似插件系统（Copilot + 插件）
+- 类似插件系统(Copilot + 插件)
 
 例子：
 
@@ -125,7 +123,7 @@ icon: "users"
 
 - 相当于把“Agent”抽象成工具调用
 
-### 2.7 Hierarchical（层级型）
+### 2.7 Hierarchical(层级型)
 
 结构：
 
@@ -135,7 +133,7 @@ icon: "users"
 
 使用场景：
 
-- 大型任务拆解（项目管理、复杂管道任务）
+- 大型任务拆解(项目管理、复杂管道任务)
 
 - AI 公司/部门结构模拟
 
@@ -145,17 +143,17 @@ icon: "users"
 
     - 顶层 Supervisor：任务拆成「市场」「技术」「用户调研」
 
-    - 市场 Supervisor → 管理 3 个 Agent（查政策/竞争对手/数据）
+    - 市场 Supervisor → 管理 3 个 Agent(查政策/竞争对手/数据)
 
-    - 技术 Supervisor → 管理 2 个 Agent（硬件/软件趋势）
+    - 技术 Supervisor → 管理 2 个 Agent(硬件/软件趋势)
 
     - 最后顶层汇总
 
-### 2.8 Custom（自定义混合型）
+### 2.8 Custom(自定义混合型)
 
 结构：
 
-- 根据业务需要自由组合（路由 + 协作 + 监督 + HITL）
+- 根据业务需要自由组合(路由 + 协作 + 监督 + HITL)
 
 - 图结构灵活，不一定规则
 
@@ -171,7 +169,7 @@ icon: "users"
 
     - 用户输入 → Supervisor 判断 → 财务/IT/HR Agent
 
-    - 某些 Agent 互相协作（如 IT + 安全）
+    - 某些 Agent 互相协作(如 IT + 安全)
 
     - 最终结果交给人类审批 (HITL)
 
@@ -179,31 +177,33 @@ icon: "users"
 
 |架构类型|特点|使用场景|
 |---|---|---|
-|路由型|一个 Dispatcher，分流给子 Agent|智能客服，多领域问答|
-|协作型|多 Agent 并行，结果合并|旅游规划、信息聚合|
-|辩论型|Proposer + Critic/Judge|代码生成、法律/合同|
-|分阶段型|Pipeline，阶段串联|ETL、报告生成|
-|人机混合型|HITL + 回溯|高风险决策场景|
+|**路由型**|一个 Dispatcher，分流给子 Agent|智能客服，多领域问答|
+|**协作型**|多 Agent 并行，结果合并|旅游规划、信息聚合|
+|**辩论型**|Proposer + Critic/Judge|代码生成、法律/合同|
+|**分阶段型**|Pipeline，阶段串联|ETL、报告生成|
+|**人机混合型**|HITL + 回溯|高风险决策场景|
 
 如果你要做 企业内部 AI 助手，可以这样组合：
 
-- 路由型：先判断用户问的是 IT 问题、HR 问题还是财务问题
+- **路由型**：先判断用户问的是 IT 问题、HR 问题还是财务问题
 
-- 协作型：IT Agent 可能并行调用「知识库查询」「日志检索」
+- **协作型**：IT Agent 可能并行调用「知识库查询」「日志检索」
 
-- 辩论型：HR Agent 生成的回复再经过一个 Critic 检查语气是否合规
+- **辩论型**：HR Agent 生成的回复再经过一个 Critic 检查语气是否合规
 
-- 人机混合：最终敏感回答由人类审核
+- **人机混合**：最终敏感回答由人类审核
 
 ## 3. 员工外卖餐补助手
 
 ### 3.1 项目背景
 
-随着公司员工餐补需求的增长，传统的人工处理方式效率低、错误率高，且无法满足实时响应需求。为了提升用户体验、提高运营效率，我们基于 **Supervisor（监督者型）多智能体架构**，构建一个多功能的员工外卖餐补助手平台。该平台可协同多个智能体（Agent），实现外卖订单查询、个性化食谱推荐、餐补报销等自动化处理，同时引入 HITL（Human-in-the-Loop）机制确保关键任务的准确性。
+随着公司员工餐补需求的增长，传统的人工处理方式效率低、错误率高，且无法满足实时响应需求。为了提升用户体验、提高运营效率，我们基于 **Supervisor(监督者型)多智能体架构**，构建一个多功能的员工外卖餐补助手平台。该平台可协同多个智能体(Agent)，实现外卖订单查询、个性化食谱推荐、餐补报销等自动化处理，同时引入 HITL(Human-in-the-Loop)机制确保关键任务的准确性
 
 ### 3.2 项目架构
 
-![画板](https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/jpeg/2308212/1759582032291-e2f170b6-6fb8-4e03-9907-1b358f8d9b66.jpeg)
+<Frame caption="多智能体项目架构图">
+  <img src="https://api.cuiliangblog.cn/v1/public/imgProxy/?url=https://cdn.nlark.com/yuque/0/2025/jpeg/2308212/1759582032291-e2f170b6-6fb8-4e03-9907-1b358f8d9b66.jpeg" alt="多智能体项目架构图" />
+</Frame>
 
 ### 3.3 技术要点
 
@@ -221,7 +221,7 @@ icon: "users"
 
 ### 4.1 main
 
-```python title="main" icon="python"
+```python title="主程序示例" icon="python" wrap expandable
 import asyncio
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
@@ -287,7 +287,7 @@ asyncio.run(main())
 
 ### 4.2 recommend
 
-```python title="recommend" icon="python"
+```python title="推荐 Agent 示例" icon="python" wrap
 import asyncio
 import dotenv
 from loguru import logger
@@ -327,7 +327,7 @@ async def recommend_node(state: State) -> State:
 
 ### 4.3 supervisor
 
-```python title="supervisor" icon="python"
+```python title="Supervisor 示例" icon="python" wrap
 from typing import TypedDict, Annotated, Optional
 from langgraph.constants import START, END
 from langgraph.graph import add_messages, StateGraph

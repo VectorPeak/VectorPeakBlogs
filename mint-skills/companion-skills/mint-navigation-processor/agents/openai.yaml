@@ -1,0 +1,3 @@
+display_name: "Mint Navigation Processor"
+short_description: "Maintains Mintlify docs.json navigation, groups, routes, and sidebar rules."
+default_prompt: "Update Mintlify docs.json navigation and validate routes."

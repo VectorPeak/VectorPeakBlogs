@@ -1,62 +1,60 @@
 ---
 title: "Memory Management"
 description: "介绍 LangGraph 中短期记忆、长期记忆、消息裁剪、总结和跨线程召回"
-icon: "brain"
 ---
 
 ## 1. 智能体记忆管理与多轮对话方法
-<Badge icon="clock" color="green">Written: 2026.06</Badge>
-要实现多轮对话，核心问题是 如何保存上下文记忆，让智能体对用户历史输入有“记忆”，能够根据历史消息记录回答问题。
+<Badge icon="clock" color="green">Written: 2026.06</Badge> 要实现多轮对话，核心问题是 如何保存上下文记忆，让智能体对用户历史输入有“记忆”，能够根据历史消息记录回答问题
 
 ## 2. 记忆模型与关键组件
 
-### 2.1 短期记忆（Checkpointer）
+### 2.1 短期记忆(Checkpointer)
 
-载体：Checkpointer（MemorySaver、RedisSaver、PostgresSaver…）
-作用：把每轮消息 + 工具调用结果序列化成图状态，按 `thread_id` 持久化；下次传入相同 `thread_id` 自动续写。
+载体：Checkpointer(`MemorySaver`、`RedisSaver`、`PostgresSaver`…)
+作用：把每轮消息 + 工具调用结果序列化成图状态，按 `thread_id` 持久化；下次传入相同 `thread_id` 自动续写
 
 原理：
 
-- 每次你调用 `graph.invoke(...)` 或 `graph.stream(...)`，LangGraph 都会维护一个状态（state）。
+- 每次你调用 `graph.invoke(...)` 或 `graph.stream(...)`，LangGraph 都会维护一个状态(state)
 
-- 如果没有 Checkpointer，这个 state 默认只存在本次调用内，调用结束就丢掉了。
+- 如果没有 Checkpointer，这个 state 默认只存在本次调用内，调用结束就丢掉了
 
-- 如果启用了 Checkpointer，它会把 state 保存到存储中（内存/数据库/文件），下次继续调用时，可以恢复之前的 state，实现“记忆”。
+- 如果启用了 Checkpointer，它会把 state 保存到存储中(内存/数据库/文件)，下次继续调用时，可以恢复之前的 state，实现“记忆”
 
-### 2.2 长期记忆（BaseStore）
+### 2.2 长期记忆(BaseStore)
 
-载体：BaseStore（InMemoryStore、RedisStore、AsyncPostgresStore…）
-作用：显式保存“用户偏好”“背景事实”等高密度信息，由 LLM 主动读写；Store 支持向量检索，支持命名空间隔离。
+载体：BaseStore(`InMemoryStore`、`RedisStore`、`AsyncPostgresStore`…)
+作用：显式保存“用户偏好”“背景事实”等高密度信息，由 LLM 主动读写；Store 支持向量检索，支持命名空间隔离
 
 和 **Checkpointer** 的区别：
 
-- Checkpointer：保存图的运行状态（短期记忆，主要用于同一个线程连续对话）。
+- Checkpointer：保存图的运行状态(短期记忆，主要用于同一个线程连续对话)
 
-- Store：LangGraph 的存储模块提供持久化的键值存储，支持跨线程和会话的长期内存，适用于需要持久化数据的复杂工作流。
+- Store：LangGraph 的存储模块提供持久化的键值存储，支持跨线程和会话的长期内存，适用于需要持久化数据的复杂工作流
 
-### 2.3 消息裁剪（ Trimming）
+### 2.3 消息裁剪( Trimming)
 
-当历史消息过长时，可在 `pre_model_hook` 里插入 `trim_messages` 策略，按最近 _N 条消息_ 或 _Token 数_ 保留，超出部分丢弃。这种做法的优点是：简单、可控，保证上下文长度不超限。但缺点是：容易丢失长对话中的重要信息。
+当历史消息过长时，可在 `pre_model_hook` 里插入 `trim_messages` 策略，按最近 _N 条消息_ 或 _Token 数_ 保留，超出部分丢弃。这种做法的优点是：简单、可控，保证上下文长度不超限。但缺点是：容易丢失长对话中的重要信息
 
-### 2.4 消息总结（Summarization ）
+### 2.4 消息总结(Summarization )
 
-通过生成摘要来“压缩”历史，避免 token 爆炸。
+通过生成摘要来“压缩”历史，避免 token 爆炸
 
-- 定期总结：每对话 X 轮，把旧消息合并成一段摘要，再存入 memory，新的上下文里只保留摘要 + 最近消息。
+- 定期总结：每对话 X 轮，把旧消息合并成一段摘要，再存入 memory，新的上下文里只保留摘要 + 最近消息
 
-- 递归总结：对摘要再继续总结，形成分层结构（像树状记忆）。
+- 递归总结：对摘要再继续总结，形成分层结构(像树状记忆)
 
-- 角色分段总结：比如只总结用户输入，系统或 AI 回复不做摘要。
+- 角色分段总结：比如只总结用户输入，系统或 AI 回复不做摘要
 
-- 优点：历史不会丢失，只是被压缩成更短的摘要。
+- 优点：历史不会丢失，只是被压缩成更短的摘要
 
-- 缺点：摘要质量依赖 LLM，可能丢细节。
+- 缺点：摘要质量依赖 LLM，可能丢细节
 
 ## 3. 代码演示
 
 ### 3.1 预构建 Agent 实现记忆存储
 
-```python title="预构建 Agent 实现记忆存储" icon="python"
+```python title="预构建 Agent 记忆示例" icon="python" wrap
 import dotenv
 from langchain_ollama import ChatOllama
 from langgraph.checkpoint.memory import InMemorySaver
@@ -70,7 +68,7 @@ llm = ChatOllama(model="qwen3:14b", reasoning=False)
 
 # 定义工具列表，
 tools = []
-# 定义短期记忆使用内存（生产可以换 RedisSaver/PostgresSaver）
+# 定义短期记忆使用内存(生产可以换 RedisSaver/PostgresSaver)
 checkpointer = InMemorySaver()
 # 创建ReAct代理，结合语言模型和工具函数
 agent = create_react_agent(model=llm, tools=tools, checkpointer=checkpointer)
@@ -80,14 +78,13 @@ config = {"configurable": {"thread_id": "user-001"}}
 msg1 = agent.invoke({"messages": [("user", "你好，我叫崔亮，喜欢学习。")]}, config)
 msg1["messages"][-1].pretty_print()
 
-# 6. 第二轮（继续同一 thread）
+# 6. 第二轮(继续同一 thread)
 msg2 = agent.invoke({"messages": [("user", "我叫什么？我喜欢做什么？")]}, config)
 msg2["messages"][-1].pretty_print()
 ```
 
-执行结果如下
 
-```console title="第二轮（继续同一 thread）" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 ================================== Ai Message ==================================
 
 你好崔亮，很高兴认识你！学习是一个非常棒的追求，不知道你最近在学习什么内容呢？是有什么特别感兴趣的领域吗？😊
@@ -102,11 +99,10 @@ msg2["messages"][-1].pretty_print()
 
 ### 3.2 底层 API 实现记忆存储
 
-定义一个聊天机器人节点函数 chatbot，它接收包含消息历史的 state，调用本地大语言模型 llm 生成回复，并返回新消息。该函数被集成到一个基于图结构的对话流程中，支持多轮对话并保持上下文。
+定义一个聊天机器人节点函数 chatbot，它接收包含消息历史的 state，调用本地大语言模型 llm 生成回复，并返回新消息。该函数被集成到一个基于图结构的对话流程中，支持多轮对话并保持上下文
 
-代码如下
 
-```python title="底层 API 实现记忆存储" icon="python"
+```python title="底层 API 记忆示例" icon="python" wrap expandable
 from typing import TypedDict, Annotated
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.constants import START, END
@@ -172,9 +168,8 @@ msg2["messages"][-1].pretty_print()
 
 ```
 
-执行结果如下
 
-```console title="第二次对话：基于上下文询问用户信息" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 ================================== Ai Message ==================================
 
 你好崔亮，很高兴认识你！😊 你对学习的热爱真的很棒，这种态度会让你在很多领域都取得不错的成就。不知道你最近在学习什么内容呢？如果有任何问题或者想讨论的话题，我很乐意和你交流！
@@ -191,13 +186,13 @@ msg2["messages"][-1].pretty_print()
 
 整体实现步骤为：
 
-1. 初始化一个 `InMemoryStore`（或 `RedisStore`）。
+1. 初始化一个 `InMemoryStore`(或 `RedisStore`)
 
-2. 把“记忆工具”塞进智能体工具箱，让 LLM 自己决定何时存/取。
+2. 把“记忆工具”塞进智能体工具箱，让 LLM 自己决定何时存/取
 
-3. 命名空间按 `user_id` 隔离，防止用户数据串线。
+3. 命名空间按 `user_id` 隔离，防止用户数据串线
 
-```python title="长期记忆+跨线程召回" icon="python"
+```python title="长期记忆示例" icon="python" wrap expandable
 import uuid
 from typing import TypedDict, Annotated
 import dotenv
@@ -316,9 +311,8 @@ msg2["messages"][-1].pretty_print()
 
 ```
 
-执行结果如下
 
-```console title="第二次交互测试：验证是否能回忆起之前的信息" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 第一次回复：
 ================================== Ai Message ==================================
 
@@ -333,11 +327,10 @@ msg2["messages"][-1].pretty_print()
 
 ### 3.4 消息裁剪
 
-一个钩子函数 pre_model_hook，用于在模型处理前裁剪消息历史，只保留最近几条消息，避免上下文过长。它使用 trim_messages 函数按策略裁剪消息，限制总 token 数为 100，从人类用户消息开始裁剪，确保输入模型的消息列表不会超出限制。
+一个钩子函数 `pre_model_hook`，用于在模型处理前裁剪消息历史，只保留最近几条消息，避免上下文过长。它使用 `trim_messages` 函数按策略裁剪消息，限制总 token 数为 100，从人类用户消息开始裁剪，确保输入模型的消息列表不会超出限制
 
-代码如下：
 
-```python title="消息裁剪" icon="python"
+```python title="消息裁剪示例" icon="python" wrap expandable
 import dotenv
 from langchain_core.messages.utils import trim_messages, count_tokens_approximately
 from langchain_ollama import ChatOllama
@@ -401,9 +394,8 @@ msg2 = agent.invoke({"messages": [("user", "我叫什么？我喜欢做的事是
 msg2["messages"][-1].pretty_print()
 ```
 
-执行结果如下
 
-```console title="定义工具列表，" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 ================================== Ai Message ==================================
 
 你好崔亮！很高兴认识你。😊 今天过得怎么样？有什么有趣的事情发生吗？
@@ -415,7 +407,7 @@ msg2["messages"][-1].pretty_print()
 ================================== Ai Message ==================================
 
 你叫什么？你喜欢做的事是篮球对吗？🏀
-（不过你刚刚已经告诉过我你喜欢做的事是篮球啦～）
+(不过你刚刚已经告诉过我你喜欢做的事是篮球啦～)
 
 如果你愿意的话，可以告诉我你的名字，这样我们就能更熟悉啦！😊
 你是不是也特别喜欢在球场上奔跑、投篮、和朋友们一起打球的感觉？
@@ -432,11 +424,10 @@ msg2["messages"][-1].pretty_print()
 
 - 定义带记忆状态的代理及会话配置；
 
-- 通过多轮对话测试模型对用户信息（姓名、兴趣）的记忆与理解能力。
+- 通过多轮对话测试模型对用户信息(姓名、兴趣)的记忆与理解能力
 
-代码如下
 
-```python title="消息总结" icon="python"
+```python title="消息总结示例" icon="python" wrap expandable
 import dotenv
 from langchain_core.messages.utils import trim_messages, count_tokens_approximately
 from langchain_ollama import ChatOllama
@@ -507,9 +498,8 @@ msg2["messages"][-1].pretty_print()
 
 ```
 
-执行结果如下
 
-```console title="查询用户姓名和兴趣，测试模型对上下文的理解能力" icon="terminal"
+```console title="执行结果如下" icon="terminal" wrap
 ================================== Ai Message ==================================
 
 你好崔亮，很高兴认识你！😊 今天过得怎么样？有什么有趣的事情发生吗？

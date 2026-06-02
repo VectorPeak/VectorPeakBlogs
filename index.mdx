@@ -1,79 +1,66 @@
 ---
-title: "VectorPeak"
-description: "AI Agent、深度学习、算法与工程实践的个人知识站点"
-mode: "custom"
+title: "Welcome to VectorPeak"
+description: "Start building and customizing your Mintlify documentation"
 ---
 
-<section className="vp-home">
-  <div className="vp-home__hero">
-    <p className="vp-home__eyebrow">VectorPeak Knowledge Base</p>
+## Get started
 
-    <h1 className="vp-home__title">
-      AI Agent
-      <span>工程实践指南</span>
-    </h1>
+Welcome to your new Mintlify documentation site. Use this starter page as the entry point for your docs, then customize the navigation, branding, and content as your project grows.
 
-    <p className="vp-home__subtitle">
-      这里记录 Agent、DeepLearning、LeetCode 和个人工程实践，用项目验证理解，用长文沉淀判断
-    </p>
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Set up the local preview, make your first edit, and publish your docs.
+  </Card>
 
-    <div className="vp-home__paths" aria-label="Knowledge paths">
-      <a className="vp-path-card vp-path-card--agent" href="/Agent/Agent_Theory/agentic-memory-systems">
-        <span className="vp-path-card__badge">Step 1</span>
-        <strong>理解 Agent</strong>
-        <small>从 memory、planning、tool use 建立核心框架，理解 Agent 为什么不是普通聊天机器人</small>
-      </a>
+  <Card title="Development" icon="code" href="/development">
+    Install the Mintlify CLI and preview changes from your local machine.
+  </Card>
 
-      <a className="vp-path-card vp-path-card--algorithm" href="/LeetCode/mindmap">
-        <span className="vp-path-card__badge">Step 2</span>
-        <strong>算法路线</strong>
-        <small>用路线图、数据结构和题型模板提升刷题效率，把 LeetCode 变成可复用的方法库</small>
-      </a>
+  <Card title="Navigation" icon="bars-staggered" href="/essentials/navigation">
+    Learn how to organize tabs, groups, pages, anchors, and global navigation.
+  </Card>
 
-      <a className="vp-path-card vp-path-card--project" href="https://github.com/VectorPeak">
-        <span className="vp-path-card__badge">Projects</span>
-        <strong>项目实践</strong>
-        <small>把学习内容沉淀成可访问的站点、可复用的技能和真实能运行的工具</small>
-      </a>
-    </div>
+  <Card title="Customization" icon="palette" href="/essentials/settings">
+    Update your site name, colors, logo, favicon, and global settings.
+  </Card>
+</CardGroup>
 
-    <div className="vp-home__actions">
-      <a className="vp-button vp-button--primary" href="/Agent/Modern_Agent/claude-code">
-        开始阅读
-      </a>
-      <a className="vp-button vp-button--secondary" href="https://github.com/VectorPeak">
-        查看 GitHub
-      </a>
-    </div>
-  </div>
+## Make your first edit
 
-  <div className="vp-home__about">
-    <div className="vp-section-heading">
-      <p>About</p>
-      <h2>这是 VectorPeak 的个人技术工作台</h2>
-      <span>
-        第三人称看，这个站点不是普通文档模板，而是 VectorPeak 对 AI Agent、算法训练、深度学习和工程自动化的长期记录。文章负责解释判断，项目负责证明实践，两者共同构成一个持续更新的技术画像
-      </span>
-    </div>
+<Steps>
+  <Step title="Open this page">
+    Edit `index.mdx` in your docs repository.
+  </Step>
 
-    <div className="vp-project-grid" aria-label="GitHub projects">
-      <a className="vp-project-card" href="https://github.com/VectorPeak/VectorPeakBlogs">
-        <p>VectorPeakBlogs</p>
-        <strong>个人知识站点</strong>
-        <span>基于 Mintlify 的博客与知识库，用来组织 Agent、DeepLearning 和 LeetCode 学习记录</span>
-      </a>
+  <Step title="Start the local preview">
+    Run the Mintlify development server from the directory that contains `docs.json`.
 
-      <a className="vp-project-card" href="https://github.com/VectorPeak/vectorpeak-agent-skills">
-        <p>vectorpeak-agent-skills</p>
-        <strong>Agent 技能沉淀</strong>
-        <span>面向软件开发和知识工作的个人 Agent skills，把高频工作流沉淀成可复用能力</span>
-      </a>
+    ```bash
+    mint dev
+    ```
+  </Step>
 
-      <a className="vp-project-card" href="https://github.com/VectorPeak/CodexPetLive">
-        <p>CodexPetLive</p>
-        <strong>桌面宠物运行时</strong>
-        <span>Windows 桌面运行时，让 Codex 生成的宠物角色能够真正出现在本地桌面环境</span>
-      </a>
-    </div>
-  </div>
-</section>
+  <Step title="Preview your changes">
+    Visit `http://localhost:3000` and refresh the page after saving your edits.
+  </Step>
+</Steps>
+
+## Explore the docs
+
+<CardGroup cols={3}>
+  <Card title="Write content" icon="pen-to-square" href="/essentials/markdown">
+    Use MDX syntax, headings, callouts, lists, and links.
+  </Card>
+
+  <Card title="Add code examples" icon="square-code" href="/essentials/code">
+    Add syntax-highlighted code blocks and grouped examples.
+  </Card>
+
+  <Card title="Use images" icon="image" href="/essentials/images">
+    Add local images, remote images, and framed screenshots.
+  </Card>
+</CardGroup>
+
+<Tip>
+  You can keep this page as a starter guide or replace it with your own project overview later.
+</Tip>
