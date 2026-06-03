@@ -43,7 +43,8 @@ mint broken-links
 - 站点主配置文件是 `docs.json`
 - LeetCode 内容位于 `LeetCode/`
 - DeepLearning 内容位于 `DeepLearning/`
-- 一些通用示例页面位于 `essentials/`
+- Agent 内容位于 `Agent/`
+- RAG 内容位于 `RAG/`
 
 ## In English
 

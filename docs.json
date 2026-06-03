@@ -8,23 +8,6 @@
     "dark": "#15803D"
   },
   "favicon": "/images/logo/vectorpeak_no_background.png",
-  "redirects": [
-    {
-      "source": "/Agent/Agent_platforms/openclaw",
-      "destination": "/Agent/Modern_Agent/openclaw",
-      "permanent": true
-    },
-    {
-      "source": "/Agent/Agent_platforms/hermes",
-      "destination": "/Agent/Modern_Agent/hermes",
-      "permanent": true
-    },
-    {
-      "source": "/Agent/Agent_platforms/claude-code",
-      "destination": "/Agent/Modern_Agent/claude-code",
-      "permanent": true
-    }
-  ],
   "navigation": {
     "tabs": [
       {
@@ -33,17 +16,15 @@
           {
             "group": "Getting started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "index"
             ]
           },
           {
             "group": "Reflections",
             "pages": [
-              "reflections/career-thinking",
-              "reflections/workplace-notes",
-              "reflections/learning-review"
+              "Guides/reflections/thoughts",
+              "Guides/reflections/actions",
+              "Guides/reflections/observations"
             ]
           }
         ]
@@ -113,9 +94,13 @@
         "tab": "RAG",
         "groups": [
           {
-            "group": "Overview",
+            "group": "RAG",
             "pages": [
-              "RAG/index"
+              "RAG/index",
+              "RAG/rag-optimization",
+              "RAG/rag-evaluation",
+              "RAG/graph-rag",
+              "RAG/agentic-rag"
             ]
           }
         ]
