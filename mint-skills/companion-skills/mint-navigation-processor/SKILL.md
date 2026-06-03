@@ -28,7 +28,7 @@ Use this skill for `docs.json` navigation work. It is responsible for Mintlify s
 {
   "group": "LangChain",
   "pages": [
-    "Agent/LangChain/LangChain"
+    "Agent/Agent_Framework/LangChain/LangChain"
   ]
 }
 ```
@@ -46,4 +46,3 @@ node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('docs.json','
 - `mint-navigation-processor`: `docs.json` tabs/groups/pages/routes
 - `mint-blog-formatter`: single MDX page frontmatter, Badge, body formatting
 - `mint-blog-document-processor`: orchestrates one MDX document and delegates content transforms
-

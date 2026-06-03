@@ -39,27 +39,11 @@
             ]
           },
           {
-            "group": "Customization",
+            "group": "Reflections",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "reflections/career-thinking",
+              "reflections/workplace-notes",
+              "reflections/learning-review"
             ]
           }
         ]
@@ -79,7 +63,40 @@
             "group": "Agent Framework",
             "pages": [
               "Agent/Agent_Framework/Framework",
-              "Agent/Agent_Framework/Harness"
+              "Agent/Agent_Framework/Harness",
+              {
+                "group": "LangChain",
+                "icon": "link",
+                "expanded": false,
+                "pages": [
+                  "Agent/Agent_Framework/LangChain/LangChain",
+                  "Agent/Agent_Framework/LangChain/Model Provider",
+                  "Agent/Agent_Framework/LangChain/Prompt Template",
+                  "Agent/Agent_Framework/LangChain/Parser",
+                  "Agent/Agent_Framework/LangChain/LCEL",
+                  "Agent/Agent_Framework/LangChain/Memory",
+                  "Agent/Agent_Framework/LangChain/Tool",
+                  "Agent/Agent_Framework/LangChain/Agent",
+                  "Agent/Agent_Framework/LangChain/MCP",
+                  "Agent/Agent_Framework/LangChain/RAG",
+                  "Agent/Agent_Framework/LangChain/LangSmith",
+                  "Agent/Agent_Framework/LangChain/LangServe"
+                ]
+              },
+              {
+                "group": "LangGraph",
+                "icon": "diagram-project",
+                "expanded": false,
+                "pages": [
+                  "Agent/Agent_Framework/LangGraph/LangGraph",
+                  "Agent/Agent_Framework/LangGraph/Agent & Tool",
+                  "Agent/Agent_Framework/LangGraph/LangGraph Ecosystem",
+                  "Agent/Agent_Framework/LangGraph/Low-Level API",
+                  "Agent/Agent_Framework/LangGraph/Memory Management",
+                  "Agent/Agent_Framework/LangGraph/LangGraph with MCP",
+                  "Agent/Agent_Framework/LangGraph/Multi-Agent Architectures"
+                ]
+              }
             ]
           },
           {
@@ -89,113 +106,16 @@
               "Agent/Modern_Agent/hermes",
               "Agent/Modern_Agent/claude-code"
             ]
-          },
-          {
-            "group": "LangChain",
-            "pages": [
-              "Agent/LangChain/LangChain",
-              "Agent/LangChain/Model Provider",
-              "Agent/LangChain/Prompt Template",
-              "Agent/LangChain/Parser",
-              "Agent/LangChain/LCEL",
-              "Agent/LangChain/Memory",
-              "Agent/LangChain/Tool",
-              "Agent/LangChain/Agent",
-              "Agent/LangChain/MCP",
-              "Agent/LangChain/RAG",
-              "Agent/LangChain/LangSmith",
-              "Agent/LangChain/LangServe"
-            ]
-          },
-          {
-            "group": "LangGraph",
-            "pages": [
-              "Agent/LangGraph/LangGraph",
-              "Agent/LangGraph/Agent & Tool",
-              "Agent/LangGraph/LangGraph Ecosystem",
-              "Agent/LangGraph/Low-Level API",
-              "Agent/LangGraph/Memory Management",
-              "Agent/LangGraph/LangGraph with MCP",
-              "Agent/LangGraph/Multi-Agent Architectures"
-            ]
           }
         ]
       },
       {
-        "tab": "DeepLearning",
+        "tab": "RAG",
         "groups": [
           {
-            "group": "Introduction",
+            "group": "Overview",
             "pages": [
-              "DeepLearning/introduction"
-            ]
-          },
-          {
-            "group": "API examples",
-            "pages": [
-              "DeepLearning/endpoint/get",
-              "DeepLearning/endpoint/create",
-              "DeepLearning/endpoint/delete",
-              "DeepLearning/endpoint/webhook"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "LeetCode",
-        "groups": [
-          {
-            "group": "Roadmap",
-            "pages": [
-              "LeetCode/mindmap"
-            ]
-          },
-          {
-            "group": "数组",
-            "pages": [
-              "LeetCode/array/array-theory"
-            ]
-          },
-          {
-            "group": "链表",
-            "pages": [
-              "LeetCode/linked-list/linked-list-theory"
-            ]
-          },
-          {
-            "group": "回溯算法",
-            "pages": [
-              "LeetCode/backtracking/backtracking-theory"
-            ]
-          },
-          {
-            "group": "贪心算法",
-            "pages": [
-              "LeetCode/greedy/greedy-theory"
-            ]
-          },
-          {
-            "group": "动态规划",
-            "pages": [
-              "LeetCode/dynamic-programming/dynamic-programming-theory"
-            ]
-          },
-          {
-            "group": "图论",
-            "pages": [
-              "LeetCode/graph/graph-theory"
-            ]
-          },
-          {
-            "group": "栈与队列",
-            "pages": [
-              "LeetCode/stack-queue/stack-queue-theory"
-            ]
-          },
-          {
-            "group": "二叉树",
-            "pages": [
-              "LeetCode/binary-tree/binary-tree-theory"
+              "RAG/index"
             ]
           }
         ]

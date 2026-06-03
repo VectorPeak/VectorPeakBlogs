@@ -1,13 +1,6 @@
 # VectorPeakBlogs 协作指令
 
-本仓库采用“渐进式披露”结构：根目录只放最短规则，详细说明放在 `agents_md_hub/`
-
-## 必读顺序
-
-1. 先读本文件
-2. 通用协作框架见 `agents_md_hub/project_framework.md`
-3. 项目具体规则见 `agents_md_hub/project_instruction.md`
-4. 图标、图片和品牌资产记录见 `agents_md_hub/assets.md`
+本文件记录仓库协作规则、项目定位和 Mintlify 本地启动方式
 
 ## 项目定位
 
@@ -51,7 +44,7 @@ mint.cmd dev --no-open
 
 ```powershell
 curl.exe -I --max-time 10 http://localhost:3000/
-curl.exe -I --max-time 10 "http://localhost:3000/Agent/LangChain/Model%20Provider"
+curl.exe -I --max-time 10 "http://localhost:3000/Agent/Agent_Framework/LangChain/Model%20Provider"
 ```
 
 以返回 HTTP `200 OK` 为准
@@ -73,16 +66,12 @@ mint.cmd dev --no-open
 
 ```powershell
 $project = 'E:\Github\VectorPeak\VectorPeakBlogs'
-$log = Join-Path $project '.mint-dev.combined.log'
+$runtimeDir = Join-Path $project '.cache\mint-dev'
+New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
+$log = Join-Path $runtimeDir 'combined.log'
 $cmd = '/c cd /d "' + $project + '" && mint.cmd dev --no-open > "' + $log + '" 2>&1'
 $p = Start-Process -FilePath 'cmd.exe' -ArgumentList $cmd -WindowStyle Hidden -PassThru
-Set-Content -Path (Join-Path $project '.mint-dev.pid') -Value $p.Id -Encoding ascii
+Set-Content -Path (Join-Path $runtimeDir 'mint-dev.pid') -Value $p.Id -Encoding ascii
 ```
 
 看到日志里出现 `preview ready` 后，再访问 `http://localhost:3000`
-
-## 详细规则
-
-- `agents_md_hub/project_framework.md`
-- `agents_md_hub/project_instruction.md`
-- `agents_md_hub/assets.md`

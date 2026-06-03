@@ -1,0 +1,19 @@
+{
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.saveConflictResolution": "askUser",
+  "git.autofetch": true,
+  "explorer.sortOrder": "foldersNestsFiles",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "docs.json": ".mintignore, .gitignore",
+    "index.mdx": "quickstart.mdx, development.mdx, about.mdx",
+    "README.md": "LICENSE, AGENTS.md"
+  },
+  "files.exclude": {
+    "**/.cache": true,
+    "**/.mint-dev*.log": true,
+    "**/.mint-dev.pid": true
+  }
+}
