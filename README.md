@@ -1,4 +1,17 @@
+<div align="center">
+
 # VectorPeak
+
+A personal blog and knowledge site for agents, RAG, algorithms, and deep learning
+
+![license](https://img.shields.io/badge/license-MIT-orange)
+![mintlify](https://img.shields.io/badge/mintlify-docs-16A34A)
+![VectorPeak](https://img.shields.io/badge/VectorPeak-blog-07C983)
+![status](https://img.shields.io/badge/status-growing-15803D)
+
+简体中文 | [English](#in-english)
+
+</div>
 
 ## 关于这个站点
 
