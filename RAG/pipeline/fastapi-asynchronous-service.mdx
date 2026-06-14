@@ -54,7 +54,7 @@ Req3:                                                                           
 
 异步模型的核心思想：当一个操作在等待时(如等待数据库返回)，切换到处理另一个请求。
 
-```text
+```mermaid
 gantt
     title 同步 vs 异步请求处理对比
     dateFormat X
@@ -391,6 +391,7 @@ sequenceDiagram
     WS-->>U: 显示来源引用
 ```
 
+```text
 &#123;"type": "start", "session\_id": "..."&#125;
 # ↓ 告知前端：请求已接收，准备展示答案区域
 
@@ -405,15 +406,15 @@ sequenceDiagram
 &#123;"type": "end", "sources": [...], "intent": &#123;...&#125;, "retrieval": &#123;...&#125;&#125;
 # ↓ 告知前端：回答完毕，附带来源引用和诊断信息
 
-```text
+```
 **设计要点**：
 - `status` 事件让用户知道系统在做什么，不是卡住了
 - `token` 事件让答案逐步出现，体验类似 ChatGPT
 - `end` 事件携带诊断信息，方便前端展示"参考来源 X 条"、命中路径、耗时等
 
-### 3.5 为什么用同步 Generator 而非异步 Generator
+### 4.5 为什么用同步 Generator 而非异步 Generator
 
-```
+```python
 # 本项目使用同步 Generator
 def stream_query(...) -> Generator[dict, None, None]:
     yield &#123;"type": "status", ...&#125;
@@ -423,7 +424,7 @@ def stream_query(...) -> Generator[dict, None, None]:
 
 # FastAPI 层用 asyncio.to_thread 包裹
 generator = await asyncio.to_thread(lambda: service.stream_query(...))
-```text
+```
 
 原因：
 1. LangChain 的 Milvus 检索和 ChatOpenAI 流式调用的底层是同步的
@@ -432,11 +433,11 @@ generator = await asyncio.to_thread(lambda: service.stream_query(...))
 
 ---
 
-## 第四部分：本项目 API 层详解
+## 5. ：本项目 API 层详解
 
-### 4.1 路由拆分架构
+### 5.1 路由拆分架构
 
-```
+```text
 app.py  ← 极薄入口：创建 FastAPI、CORS、静态资源、注册路由
 
 qa_core/api/
@@ -453,11 +454,11 @@ qa_core/api/
 └── kb_versions.py ← GET /api/kb_versions,
                       POST /api/kb_versions/&#123;kb_version&#125;/activate,
                       POST /api/kb_versions/&#123;kb_version&#125;/archive
-```text
-
-### 4.2 在线问答唯一入口：WebSocket /api/stream
-
 ```
+
+### 5.2 在线问答唯一入口：WebSocket /api/stream
+
+```python
 @router.websocket("/api/stream")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -478,24 +479,24 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_json(event)
             if event.get("type") in &#123;"end", "error"&#125;:
                 break
-```text
+```
 
 前端逻辑：
 
-```
+```js
 const ws = new WebSocket(`$&#123;protocol&#125;//$&#123;window.location.host&#125;/api/stream`);
 ws.onopen = () => ws.send(JSON.stringify(&#123; query, session_id, scenario_id, source_filter &#125;));
 ws.onmessage = (message) => renderStreamEvent(JSON.parse(message.data));
-```text
+```
 
 **设计意图**：
 - 在线问答只走一套连接、限流、事件协议和历史写入逻辑
 - 问候、越界、转人工等直答在 Pipeline 意图识别阶段通过 WebSocket 事件返回
 - FAQ 命中、文档检索、LLM 生成也沿用同一条事件链路，避免 HTTP 与 WebSocket 两套实现产生不一致
 
-### 4.3 管理接口认证
+### 5.3 管理接口认证
 
-```
+```python
 # qa_core/api/dependencies.py
 from fastapi import Header, HTTPException
 
@@ -511,15 +512,15 @@ def require_admin_token(x_admin_token: str | None = Header(default=None)) -> Non
 @router.get("/api/admin/langsmith")
 async def get_langsmith_status(_=Depends(require_admin_token)):
     ...
-```text
+```
 
 前端状态页面提供令牌输入框，后端从 HTTP Header `X-Admin-Token` 中读取。命令行脚本默认从运行时配置读取令牌：本机调试来自 `.env`，Docker Compose 模式来自容器环境变量，避免把真实令牌写入终端历史。
 
-### 4.4 限流保护
+### 5.4 限流保护
 
 下面的滑动窗口示意图直观展示 `check_rate_limit` 的工作过程(limit=3，窗口=60 秒)：
 
-```
+```mermaid
 gantt
     title 滑动窗口限流示例(limit=3，窗口=60秒)
     dateFormat  HH:mm:ss
@@ -583,11 +584,11 @@ def enforce_http_rate_limit(request: Request) -> None:
     """HTTP 请求限流依赖，超限时返回 429。"""
     if not check_rate_limit(client_key(request)):
         raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试。")
-```text
+```
 
 ---
 
-## 本讲实践闭环
+## 6. 本讲实践闭环
 
 | 项目 | 内容 |
 | --- | --- |
@@ -599,11 +600,11 @@ def enforce_http_rate_limit(request: Request) -> None:
 
 通过标准：API 层只负责协议转换和连接管理，核心 RAG 逻辑仍在 service/pipeline 层。
 
-### 本讲从 0 到 1 实现闭环
+### 6.1 本讲从 0 到 1 实现闭环
 
 这一讲把项目从“Python 模块能调用”变成“浏览器和接口能访问”。实现时按四层推进：
 
-```
+```mermaid
 flowchart TD
     Browser["浏览器页面"] --> WS["WS /api/stream&lt;br/>在线问答唯一入口"]
     Browser --> History["HTTP 历史/反馈/场景接口"]
@@ -613,7 +614,7 @@ flowchart TD
     Service --> Thread["asyncio.to_thread&lt;br/>推进阻塞型 Generator"]
     Thread --> Events["逐个发送 Pipeline 事件"]
     DebugService --> Json["返回意图/计划/命中 JSON"]
-```text
+```
 
 1. 在 `app.py` 创建 FastAPI 应用，只做路由注册、中间件、静态资源和生命周期。
 2. 在 `qa_core/api/chat.py` 定义 WebSocket stream 接口，承载所有在线问答。
@@ -622,7 +623,7 @@ flowchart TD
 
 实现完成后，相关代码结构应该是下面这张图：
 
-```
+```mermaid
 flowchart LR
     App["app.py&lt;br/>创建 FastAPI&lt;br/>中间件/静态资源/路由"] --> Chat["qa_core/api/chat.py&lt;br/>WebSocket stream&lt;br/>history / feedback / debug"]
     App --> Admin["qa_core/api/admin.py&lt;br/>状态/报告/管理接口"]
@@ -630,22 +631,22 @@ flowchart LR
     Chat --> Service["qa_core/application/service.py&lt;br/>QAService"]
     Static["static/&lt;br/>浏览器页面"] --> Chat
     Test["tests/test_api_protection.py&lt;br/>令牌/限流/异常"] -. 验证 .-> Chat
-```text
+```
 
 来源：真实代码调用点，见 `app.py`。
 
-```
+```python
 app = FastAPI(title="KnowForge RAG Platform")
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins)
 app.include_router(chat_router, prefix="/api")
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
-```text
+```
 
 WebSocket 接口的职责很薄：保持连接、接收请求、逐个发送 service 事件。它不拼 Prompt、不检索、不重排。
 
 来源：真实代码逻辑压缩版，对应 `qa_core/api/chat.py::websocket_endpoint()` 和 `_send_stream_events()`。
 
-```
+```python
 @router.websocket("/api/stream")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -673,15 +674,15 @@ async def websocket_endpoint(websocket: WebSocket):
                 break
             if event.get("type") == "error":
                 break
-```text
+```
 
 涉及限流、管理令牌、CORS 这类保护逻辑时，要写成独立函数或依赖，避免散落在每个接口里。
 
 来源：真实代码调用点，见 `qa_core/api/chat.py` 和 `tests/test_api_protection.py`。
 
-```
+```bash
 python -m pytest tests/test_api_protection.py -q
-```text
+```
 
 闭环验证重点：
 
@@ -695,7 +696,7 @@ python -m pytest tests/test_api_protection.py -q
 
 验收重点：异步框架负责并发连接，阻塞型 RAG 工作通过线程桥接；API 层不承担业务算法。
 
-## 重点掌握
+## 7. 重点掌握
 
 | 优先级 | 内容 | 原因 |
 | --- | --- | --- |
@@ -709,7 +710,7 @@ python -m pytest tests/test_api_protection.py -q
 | ★ 了解 | CORS 中间件配置 | 开发调试需要 |
 | ★ 了解 | Pydantic 请求校验、依赖注入 | FastAPI 基础功能，回顾即可 |
 
-## 本讲小结
+## 8. 本讲小结
 
 - **异步(async/await)** 让服务器在等待 I/O 时处理其他请求，适合 RAG 这种 I/O 密集型场景
 - **FastAPI** 提供原生异步支持、自动 Pydantic 校验、WebSocket 和模块化路由
@@ -719,4 +720,3 @@ python -m pytest tests/test_api_protection.py -q
 - `asyncio.to_thread` 将同步业务逻辑放到线程池，保持事件循环不受阻塞
 
 **下一讲**：[应用入口与环境前置校验](/RAG/pipeline/app-entry-preflight) — app.py 详解、启动校验链、检索栈预热
-```

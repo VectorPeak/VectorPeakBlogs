@@ -58,8 +58,8 @@ qa_core/pipeline/
 ├── query_variants.py  # 查询变体生成
 ├── events.py       # 事件构造(start/status/token/end/error)
 └── citations.py    # 答案引用增强
-```
 
+```
 ---
 
 ## 3. 8 个 Stage 主流程
@@ -409,7 +409,7 @@ def build_context(docs: list[Document]) -> str:
 
 `prepare_answer` 在 `steps.py` 中定义，其内部的信息不足判定委托给 `_build_answer_context`：
 
-```text
+```python
 # qa_core/pipeline/steps.py
 def prepare_answer(
     context: RAGQueryContext,
@@ -481,11 +481,9 @@ def build_insufficient_context_answer(context: RAGQueryContext) -> str:
 
 LLM 生成的答案可能引用上下文中的信息，但不会自动标注"这个信息来自哪个文档"。引用增强在 LLM 生成完答案后，检查答案是否提到了上下文中的关键信息，如果提到了就补充来源标注。
 
-```python
+~~~python
 # qa_core/pipeline/citations.py
-CITATION_RE = re.compile(r"```text
-\d+
-```")
+CITATION_RE = re.compile(r"\[\d+\]")
 
 def has_source_citation(answer: str) -> bool:
     """判断答案中是否已经包含 [数字] 形式的来源编号。"""
@@ -533,13 +531,13 @@ def enforce_answer_citations(answer: str, context_docs: list[Document]) -> str:
         for index, doc in enumerate(context_docs[:3], start=1)
     )
     return f"&#123;clean_answer&#125;\n\n参考来源：&#123;references&#125;"
-```
+~~~
 
 ---
 
-## 第六部分：性能追踪
+## 7. 性能追踪
 
-### 6.1 阶段计时
+### 7.1 阶段计时
 
 ```python
 # qa_core/pipeline/runtime.py
@@ -572,7 +570,7 @@ class RAGQueryContext:
 
 追踪信息最终进入 `end` 事件：
 
-```json
+```
 &#123;
     "type": "end",
     "retrieval": &#123;
@@ -594,13 +592,13 @@ class RAGQueryContext:
 
 ---
 
-## 第七部分：流式事件协议 — 前后端如何协作
+## 8. 流式事件协议 — 前后端如何协作
 
-### 7.1 事件驱动的问答模型
+### 8.1 事件驱动的问答模型
 
 一次 RAG 问答不是"前端发请求 → 等 5 秒 → 收到完整答案"。实际的用户体验是：
 
-```text
+```
 前端发送问题 → 看到"正在进行查询路由..." →
 看到"正在识别问题意图..." → 看到"正在检索 FAQ..." → 看到"正在匹配业务资料..." → 看到"正在生成回答..." → token 逐字出现 →
 看到完整答案 + 来源引用
@@ -608,9 +606,9 @@ class RAGQueryContext:
 
 这就是**事件驱动模型**。后端通过 WebSocket 持续推送事件，前端根据事件类型更新 UI。
 
-### 7.2 五种事件类型
+### 8.2 五种事件类型
 
-```mermaid
+```
 sequenceDiagram
     participant Browser as 浏览器
     participant WS as /api/stream (WebSocket)
@@ -652,11 +650,11 @@ sequenceDiagram
     WS-->>Browser: 渲染来源引用、展示诊断信息
 ```
 
-### 7.3 每种事件的字段结构
+### 8.3 每种事件的字段结构
 
 **start 事件** — 请求已被接收：
 
-```json
+```
 &#123;
     "type": "start",
     "session_id": "abc123",
@@ -670,7 +668,7 @@ sequenceDiagram
 
 **status 事件** — 阶段性进度通知：
 
-```json
+```
 &#123;
     "type": "status",
     "session_id": "abc123",
@@ -682,7 +680,7 @@ sequenceDiagram
 
 **token 事件** — 流式答案的片段：
 
-```json
+```
 &#123;
     "type": "token",
     "session_id": "abc123",
@@ -694,7 +692,7 @@ sequenceDiagram
 
 **end 事件** — 问答完成：
 
-```json
+```
 &#123;
     "type": "end",
     "session_id": "abc123",
@@ -721,7 +719,7 @@ sequenceDiagram
 
 **error 事件** — 异常恢复：
 
-```json
+```
 &#123;
     "type": "error",
     "session_id": "abc123",
@@ -730,9 +728,9 @@ sequenceDiagram
 &#125;
 ```
 
-### 7.4 前端如何消费事件
+### 8.4 前端如何消费事件
 
-```js
+```
 // static/js/chat.js(简化逻辑)
 
 const ws = new WebSocket(`ws://$&#123;location.host&#125;/api/stream`);
@@ -769,7 +767,7 @@ ws.onmessage = (event) => &#123;
 &#125;;
 ```
 
-### 7.5 后端如何推进生成器
+### 8.5 后端如何推进生成器
 
 关键问题：`QAService.stream_query()` 是**同步生成器**(它内部顺序执行意图识别、Milvus 检索、本地 rerank 和 LLM 流式调用)，但 WebSocket 路由是**异步函数**。如果直接调用 `next(iterator)`，事件循环会被阻塞。
 
@@ -793,7 +791,7 @@ while True:
         break
 ```
 
-```mermaid
+```
 flowchart TD
     subgraph MainThread["主线程(事件循环)"]
         WS["WebSocket 接收消息"]
@@ -839,7 +837,7 @@ flowchart TD
 
 **为什么不在 LLM 流式阶段回到主线程？** LLM 的 `llm.stream()` 本身返回一个迭代器，每次迭代都是阻塞的 HTTP 读取操作。如果回到主线程逐 token 读取，同样会阻塞事件循环。所以整个生成器——从意图识别到最后一个 token——全部留在工作线程中执行。
 
-### 7.6 事件协议的设计原则
+### 8.6 事件协议的设计原则
 
 1. **类型安全**：每个事件都有 `type` 字段，前端用 `switch` 分派处理，不靠字段存在与否判断
 2. **诊断信息附带**：`end` 事件携带完整的 retrieval 诊断信息，前端可以用 JS 渲染到页面上，帮助用户理解"系统为什么这样回答"
@@ -848,7 +846,7 @@ flowchart TD
 
 ---
 
-## 本讲实践闭环
+## 9. 本讲实践闭环
 
 | 项目 | 内容 |
 | --- | --- |
@@ -860,11 +858,11 @@ flowchart TD
 
 通过标准：FAQ 快速路径、文档 RAG、信息不足、流式生成都能走到可解释的分支。
 
-### 本讲从 0 到 1 实现闭环
+### 9.1 本讲从 0 到 1 实现闭环
 
 本讲是在线问答的主干实现。实现完成后，相关代码结构应该是下面这张图：
 
-```mermaid
+```
 flowchart LR
     subgraph Pipeline["qa_core/pipeline"]
         Rag["rag.py&lt;br/>stream_query 主流程"]
@@ -895,13 +893,13 @@ flowchart LR
     History --> Steps
 ```
 
-#### Step 1：定义流式事件协议
+#### 9.1.1 ：定义流式事件协议
 
 目标：Pipeline 不直接返回字符串，而是持续产出浏览器能理解的事件。
 
 来源：真实代码逻辑压缩版，对应 `qa_core/pipeline/events.py`、`qa_core/pipeline/runtime.py` 与 `qa_core/pipeline/rag.py`。
 
-```text
+```
 context = create_query_context(...)
 yield start_event(context)
 
@@ -917,13 +915,13 @@ yield finish_success(context, answer=answer)
 
 设计解释：前端要实时展示进度，后端要暴露阶段诊断，所以事件比单个字符串更适合 RAG。
 
-#### Step 2：串起意图、计划和检索
+#### 9.1.2 ：串起意图、计划和检索
 
 目标：把第 5-8 讲的模块接进同一条主流程。
 
 来源：真实代码逻辑压缩版，对应 `qa_core/pipeline/rag.py` 和 `qa_core/pipeline/steps.py`。
 
-```text
+```
 yield status_event("正在进行查询路由...", context.session_id)
 route = decide_route(context)
 if route.answer:
@@ -944,11 +942,11 @@ if prepared.intent.direct_answer:
 
 调试入口补充：`debug_retrieval()` 只用于检索诊断，故意从 `prepare_retrieval()` 开始跑半链路，方便观察检索类意图、source 推断、按需改写和 FAQ/Doc 召回；线上问答入口仍然是 `stream_query()`，并且一定先经过 `decide_route()`。
 
-#### Step 3：实现 FAQ 快速路径和文档 RAG 分支
+#### 9.1.3 ：实现 FAQ 快速路径和文档 RAG 分支
 
 来源：真实代码逻辑压缩版，对应 `qa_core/pipeline/rag.py::_search_and_generate()` 与 `qa_core/pipeline/retrieval_steps.py`。
 
-```text
+```
 yield status_event("正在检索业务 FAQ 知识库...", context.session_id)
 faq_result = search_faq(context, prepared)
 direct_answer = get_faq_direct_answer(context, prepared, faq_result)
@@ -972,11 +970,11 @@ if context.hit_type == "insufficient_context":
 
 设计解释：FAQ 高置信直出可以省掉 LLM；文档 RAG 需要足够上下文；没有上下文时必须明确拒绝幻觉。
 
-#### Step 4：构建上下文并流式生成
+#### 9.1.4 ：构建上下文并流式生成
 
 来源：真实代码逻辑压缩版，对应 `qa_core/pipeline/rag.py`、`qa_core/pipeline/steps.py`、`qa_core/pipeline/context.py`、`qa_core/pipeline/citations.py`。
 
-```text
+```
 yield status_event("正在生成回答...", context.session_id)
 with context.stage("llm_generation"):
     for chunk in stream_llm_answer(answer_prepared.system_prompt, answer_prepared.user_prompt):
@@ -999,11 +997,11 @@ elif answer != raw_answer:
 
 设计解释：LLM 只看到筛选后的上下文；引用增强在生成后执行，保证答案可追溯。
 
-#### Step 5：保存历史并记录 Trace
+#### 9.1.5 ：保存历史并记录 Trace
 
 来源：真实代码逻辑压缩版，对应 `qa_core/pipeline/rag.py::_finish_with_single_answer()` 和 Stage 7。
 
-```text
+```
 with context.stage("save_history"):
     history.add_turn(context.session_id, query, answer)
 yield finish_success(context, answer=answer)
@@ -1018,13 +1016,13 @@ yield finish_success(context, answer=answer)
 
 设计解释：历史要保存最终答案，而不是未补引用的中间答案；Trace 要记录命中路径、阶段耗时和检索分数。
 
-#### Step 6：验收完整链路
+#### 9.1.6 ：验收完整链路
 
 验收方式：
 
 来源：命令行验收，对应 `scripts/api_e2e_smoke.py`。
 
-```text
+```
 python scripts/api_e2e_smoke.py
 ```
 
@@ -1046,7 +1044,7 @@ python scripts/api_e2e_smoke.py
 - 最终答案带引用来源。
 - 右侧诊断或 Trace 能看到命中路径、阶段耗时和 top score。
 
-## 重点掌握
+## 10. 重点掌握
 
 | 优先级 | 内容 | 原因 |
 | --- | --- | --- |
@@ -1060,7 +1058,7 @@ python scripts/api_e2e_smoke.py
 | ★★ 理解 | asyncio.to\_thread 桥接同步 Generator 和异步 WebSocket | Python 异步编程的关键模式 |
 | ★ 了解 | Pipeline 的模块化拆分：rag.py / runtime.py / steps.py / retrieval\_steps.py / context.py / events.py / citations.py | 了解文件职责划分 |
 
-## 本讲小结
+## 11. 本讲小结
 
 - **Pipeline > Chain**：RAG 是有分支、有快慢路径的管道，不是固定步骤的链
 - **查询路由**统一处理 direct\_answer、faq\_exact、retrieval，避免拆成两套“意图识别”
