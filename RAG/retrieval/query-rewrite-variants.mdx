@@ -12,15 +12,15 @@ icon: "route"
 **上一讲**：[检索策略与动态计划](/RAG/retrieval/retrieval-strategy)  
 **下一讲**：[Milvus 混合检索深度解析](/RAG/retrieval/milvus-hybrid-search)
 
-## 本讲目标
+## 1. 本讲目标
 
 - 理解多轮对话中追问问题的处理机制
-- 掌握查询改写（Query Rewrite）的触发条件和工作原理
-- 理解查询变体（Query Variants）如何提升召回覆盖率
+- 掌握查询改写(Query Rewrite)的触发条件和工作原理
+- 理解查询变体(Query Variants)如何提升召回覆盖率
 
 ---
 
-## 本讲项目交付闭环
+## 2. 本讲项目交付闭环
 
 第 6 讲已经生成了检索计划，但真实对话里用户经常不会把问题说完整。本章要解决两个召回前的问题：一是把“那审批呢”这类追问改写成能独立检索的问题，二是在需要时生成少量同义检索表达，提高 Milvus 召回覆盖率。
 
@@ -67,9 +67,9 @@ pytest tests/test_retrieval_and_prompt.py tests/test_memory_history.py -q
 
 ---
 
-## 第一部分：前置知识 — 多轮对话中的指代消解
+## 3. 前置知识 — 多轮对话中的指代消解
 
-### 1.1 为什么追问需要特殊处理
+### 3.1 为什么追问需要特殊处理
 
 在真实对话中，用户的后续问题往往依赖于前文的上下文：
 
@@ -87,9 +87,9 @@ AI：入职流程包括：1. 提交材料 2. 签订合同 3. 部门审批 4. 领
 
 **这就是追问改写的必要性**：把依赖上下文的问题补全为独立的检索问题。
 
-### 1.2 指代消解的概念
+### 3.2 指代消解的概念
 
-**指代消解（Anaphora Resolution）** 是 NLP 的一个经典问题：确定代词或省略的主体指什么。
+**指代消解(Anaphora Resolution)** 是 NLP 的一个经典问题：确定代词或省略的主体指什么。
 
 ```text
 "那审批呢" → "那" 指代的是 入职流程中的审批步骤
@@ -99,9 +99,9 @@ AI：入职流程包括：1. 提交材料 2. 签订合同 3. 部门审批 4. 领
 
 ---
 
-## 第二部分：查询改写（Query Rewrite）
+## 4. 查询改写(Query Rewrite)
 
-### 2.1 触发条件
+### 4.1 触发条件
 
 改写不是对所有问题都执行，有两个条件：
 
@@ -135,7 +135,7 @@ return IntentResult(
 )
 ```
 
-### 2.2 改写实现
+### 4.2 改写实现
 
 ```python
 # qa_core/pipeline/rewrite.py
@@ -164,7 +164,7 @@ def rewrite_query_if_needed(query, history_messages, should_rewrite):
     return rewritten
 ```
 
-### 2.3 改写 Prompt 设计
+### 4.3 改写 Prompt 设计
 
 ```text
 REWRITE_SYSTEM_PROMPT = """
@@ -172,7 +172,7 @@ REWRITE_SYSTEM_PROMPT = """
 
 规则：
 1. 如果问题已经可以独立理解，直接返回原问题
-2. 如果问题包含代词（那、这个、它、他们）或依赖上文，请结合对话历史补全
+2. 如果问题包含代词(那、这个、它、他们)或依赖上文，请结合对话历史补全
 3. 补全后的检索问题应该包含具体的实体和动作
 4. 只返回改写后的问题，不要加任何解释
 
@@ -193,7 +193,7 @@ AI：API 限流可以通过升级套餐或联系技术支持处理...
 """
 ```
 
-### 2.4 为什么要限制历史长度
+### 4.4 为什么要限制历史长度
 
 ```text
 history_text = format_messages(history_messages[-8:])  # 只取最近 8 条
@@ -203,20 +203,20 @@ history_text = format_messages(history_messages[-8:])  # 只取最近 8 条
 - **聚焦**：只取最近的对话，让改写聚焦当前追问主题
 - **防止跑题**：如果用户 14 轮之前问的是"入职"，现在问的是"报销"，取全部历史反而会让改写混淆
 
-### 2.5 完整问题不改写的原则
+### 4.5 完整问题不改写的原则
 
 ```text
 if not should_rewrite or not history_messages:
     return query  # 直接返回原问题，不做任何修改
 ```
 
-对于完整、自包含的问题（如"入职流程有哪些步骤"、"API 密钥怎么生成"），保持原样是最好的做法。让 LLM 改写清晰的问题可能会导致"改偏"——原本明确的问题被改成模糊的。
+对于完整、自包含的问题(如"入职流程有哪些步骤"、"API 密钥怎么生成")，保持原样是最好的做法。让 LLM 改写清晰的问题可能会导致"改偏"——原本明确的问题被改成模糊的。
 
 ---
 
-## 第三部分：查询变体（Query Variants）
+## 5. 查询变体(Query Variants)
 
-### 3.1 为什么需要查询变体
+### 5.1 为什么需要查询变体
 
 用户的问题表述方式可能和知识库中的表述不一致。例如：
 
@@ -225,7 +225,7 @@ if not should_rewrite or not history_messages:
 知识库写：入职报到需提交的材料清单
 ```
 
-虽然语义相近（Embedding 能找到），但关键词完全不同（BM25 找不到了）。
+虽然语义相近(Embedding 能找到)，但关键词完全不同(BM25 找不到了)。
 
 **查询变体**的思路：把用户的原始问题扩展成多个等价表达，每个都去检索，提高命中率。
 
@@ -239,9 +239,9 @@ if not should_rewrite or not history_messages:
   4. "入职需要携带的证件和材料"    ← 更具体的表述
 ```
 
-### 3.2 两种生成方式
+### 5.2 两种生成方式
 
-**方式 1：规则生成（本地，不用 LLM）**
+**方式 1：规则生成(本地，不用 LLM)**
 
 对于能从 scene TOML 中推断出 source 的短问题，使用关键词替换生成变体：
 
@@ -254,8 +254,8 @@ def generate_query_variants(query: str, *, enabled: bool) -> list[str]:
 
     生成策略分 3 层：
     1. enabled=False 或配置关闭 → 直接返回 [原问题]
-    2. 短结构化问题 → 跳过扩展（已经足够清晰，扩展无收益）
-    3. 本地启发式命中 → 用关键词替换规则生成变体（快、稳定、不用 LLM）
+    2. 短结构化问题 → 跳过扩展(已经足够清晰，扩展无收益)
+    3. 本地启发式命中 → 用关键词替换规则生成变体(快、稳定、不用 LLM)
     4. 以上都不满足 → 调用 LLM 结构化输出生成变体
     """
     settings = get_settings()
@@ -373,7 +373,7 @@ def _looks_like_short_structured_question(query: str) -> bool:
 
 判断逻辑：问题长度不超过 24 个字符，且包含流程类、FAQ 类的高频句式标记。命中时直接返回单查询 `[cleaned]`，不再走 LLM 扩展路径。
 
-**方式 2：LLM 生成（Pydantic 结构化输出，适用于本地规则未命中的情况）**
+**方式 2：LLM 生成(Pydantic 结构化输出，适用于本地规则未命中的情况)**
 
 ```text
     # 本地启发式未命中时，使用 Pydantic 结构化输出让 LLM 生成变体
@@ -388,7 +388,7 @@ def _looks_like_short_structured_question(query: str) -> bool:
             ...  # 去重、上限控制后追加到 variants 列表
 ```
 
-### 3.3 什么时候不生成变体
+### 5.3 什么时候不生成变体
 
 ```text
 # RetrievalPlan 是 frozen dataclass，use_query_variants 在 build_retrieval_plan() 构造时设定
@@ -409,24 +409,24 @@ plan = RetrievalPlan(
 
 ---
 
-## 第四部分：历史消息的压缩策略
+## 6. 历史消息的压缩策略
 
-### 4.1 为什么不把全部历史发给 LLM
+### 6.1 为什么不把全部历史发给 LLM
 
 假设用户已经和系统对话了 50 轮：
 - 全部历史可能有好几千个 token
-- 每次请求（意图识别、改写、生成）都带完整历史 → 成本高、延迟高
+- 每次请求(意图识别、改写、生成)都带完整历史 → 成本高、延迟高
 - 对话时间跨度长，早期的主题和当前问题可能已经无关
 
-### 4.2 摘要 + 最近消息 策略
+### 6.2 摘要 + 最近消息 策略
 
 ```python
 # qa_core/memory/history.py — ChatHistoryStore 类
 def get_context_messages(self, session_id: str):
-    # 1. 读取已有会话摘要（从 MySQL 摘要表加载）
+    # 1. 读取已有会话摘要(从 MySQL 摘要表加载)
     summary = self.get_summary(session_id)
 
-    # 2. 读取最近 8 条消息（由 settings.history_recent_messages 控制）
+    # 2. 读取最近 8 条消息(由 settings.history_recent_messages 控制)
     recent = self.get_messages(session_id, limit=self.settings.history_recent_messages)
 
     # 3. 拼接：摘要作为 SystemMessage 放在前面
@@ -435,7 +435,7 @@ def get_context_messages(self, session_id: str):
     return recent
 ```
 
-**摘要生成**：当历史消息超过 `history_summary_after_messages`（默认 14 条），由 `refresh_summary_if_needed()` 在每轮回答结束后异步触发摘要刷新。实际代码拆分为两个方法：
+**摘要生成**：当历史消息超过 `history_summary_after_messages`(默认 14 条)，由 `refresh_summary_if_needed()` 在每轮回答结束后异步触发摘要刷新。实际代码拆分为两个方法：
 
 - `get_summary(session_id)` — 从 MySQL 摘要表读取已有摘要
 - `refresh_summary_if_needed(session_id)` — 判断消息数是否达标，达标则调用 LLM 生成摘要并通过 `save_summary()` 写入 MySQL
@@ -485,7 +485,7 @@ def refresh_summary_if_needed(self, session_id: str) -> None:
         self.save_summary(session_id, summary)
 ```
 
-### 4.3 上下文窗口管理全景
+### 6.3 上下文窗口管理全景
 
 ```text
 整个会话的上下文管理策略：
@@ -498,7 +498,7 @@ def refresh_summary_if_needed(self, session_id: str) -> None:
 
 发给 LLM 的内容：
 ┌────────────────────┐
-│ 会话摘要（如果有）  │  ← 200-1200 字符
+│ 会话摘要(如果有)  │  ← 200-1200 字符
 ├────────────────────┤
 │ 最近 8 条消息      │  ← 完整对话文本
 └────────────────────┘
@@ -506,9 +506,9 @@ def refresh_summary_if_needed(self, session_id: str) -> None:
 
 ---
 
-## 第五部分：改写+变体的完整流程
+## 7. 改写+变体的完整流程
 
-### 5.1 在 RAG 链路中的位置
+### 7.1 在 RAG 链路中的位置
 
 ```mermaid
 flowchart TD
@@ -556,9 +556,9 @@ flowchart TD
 | 合并去重 → Rerank | `qa_core/retrieval/ranking.py::merge_hits_by_document()`、`qa_core/retrieval/ranking.py::rerank_hits()` | 第 7 讲 |
 | 构建上下文 → LLM 生成 | `qa_core/pipeline/context.py::select_context_docs()`、`qa_core/pipeline/steps.py::stream_llm_answer()` | 第 9 讲 |
 
-> **阅读建议**：对照上表，先在流程图中理解数据流向（"改写后的问题去哪里了""变体是在哪个节点生成的"），再按"对应章节"列跳转到具体代码。不要试图一次性读懂全部代码——按流程图节点逐个击破。
+> **阅读建议**：对照上表，先在流程图中理解数据流向("改写后的问题去哪里了""变体是在哪个节点生成的")，再按"对应章节"列跳转到具体代码。不要试图一次性读懂全部代码——按流程图节点逐个击破。
 
-### 5.2 历史压缩策略
+### 7.2 历史压缩策略
 
 ```mermaid
 flowchart LR
@@ -584,26 +584,26 @@ flowchart LR
 
 **这张图解决了一个实际问题：LLM 的上下文窗口不是无限的，但对话可以无限进行下去。**
 
-左半部分（会话历史管理）展示了两阶段策略：
+左半部分(会话历史管理)展示了两阶段策略：
 
 - **第 1-14 轮**：所有消息完整保留。这时候对话还短，全部历史加起来不过几千 token，LLM 完全可以消化。
-- **第 15 轮开始**：前 N 轮压缩为一段 200-1200 字符的摘要，只保留最近 8 轮完整消息。压缩的触发条件是 `refresh_summary_if_needed()`，它在每轮问答结束后检查消息数——超过 `history_summary_after_messages`（默认 14 条）就用非流式 LLM 生成摘要，存到 MySQL 的摘要表。
+- **第 15 轮开始**：前 N 轮压缩为一段 200-1200 字符的摘要，只保留最近 8 轮完整消息。压缩的触发条件是 `refresh_summary_if_needed()`，它在每轮问答结束后检查消息数——超过 `history_summary_after_messages`(默认 14 条)就用非流式 LLM 生成摘要，存到 MySQL 的摘要表。
 
-右半部分（发送给 LLM 的上下文）展示的是**每次请求时拼给 LLM 的最终内容**：
+右半部分(发送给 LLM 的上下文)展示的是**每次请求时拼给 LLM 的最终内容**：
 
 ```text
 [System Prompt]
    ↓
-[会话摘要] ← 如果有（200-1200 字符，概括前十几轮的要点）
+[会话摘要] ← 如果有(200-1200 字符，概括前十几轮的要点)
    ↓
-[最近 8 条消息] ← 完整原文（保留措辞细节和指代关系）
+[最近 8 条消息] ← 完整原文(保留措辞细节和指代关系)
    ↓
 [当前问题] ← 用户刚发的问题
 ```
 
-**为什么是"摘要 + 最近 8 条"而不是"全部历史"？** 如果 30 轮对话后还把全部历史发给 LLM，prompt 会膨胀到上万 token，不仅成本飙升，LLM 的注意力也会被稀释（中间偏早的对话细节会干扰当前问题的判断）。摘要把早期对话浓缩成一两句话，最近 8 条保留完整上下文——在"省 token"和"不丢信息"之间取得了平衡。
+**为什么是"摘要 + 最近 8 条"而不是"全部历史"？** 如果 30 轮对话后还把全部历史发给 LLM，prompt 会膨胀到上万 token，不仅成本飙升，LLM 的注意力也会被稀释(中间偏早的对话细节会干扰当前问题的判断)。摘要把早期对话浓缩成一两句话，最近 8 条保留完整上下文——在"省 token"和"不丢信息"之间取得了平衡。
 
-**为什么最近保留 8 条而不是 3 条或 14 条？** 这里的 8 条是项目默认值，不是行业标准。它的依据是：多轮追问经常跨越 4-5 轮（"入职需要什么材料"→"身份证复印件可以吗"→"电子版行不行"→"多久能办好"→"提前准备可以吗"），只保留 3 条容易丢指代；保留太多又会增加 prompt 成本并引入旧话题干扰。生产环境可以通过追问改写成功率、prompt 长度和用户会话统计继续调整。
+**为什么最近保留 8 条而不是 3 条或 14 条？** 这里的 8 条是项目默认值，不是行业标准。它的依据是：多轮追问经常跨越 4-5 轮("入职需要什么材料"→"身份证复印件可以吗"→"电子版行不行"→"多久能办好"→"提前准备可以吗")，只保留 3 条容易丢指代；保留太多又会增加 prompt 成本并引入旧话题干扰。生产环境可以通过追问改写成功率、prompt 长度和用户会话统计继续调整。
 
 **代码实现**——两个核心方法对应上图的两个阶段：
 
@@ -612,7 +612,7 @@ flowchart LR
 
 def get_context_messages(self, session_id: str) -> list[BaseMessage]:
     """对应上图右半部分：拼给 LLM 的最终上下文。"""
-    # 读取已持久化的最近 N 条完整消息（默认 8 条）
+    # 读取已持久化的最近 N 条完整消息(默认 8 条)
     recent = self.get_messages(session_id, limit=self.settings.history_recent_messages)
     # 从 MySQL 摘要表读取已有摘要
     summary = self.get_summary(session_id)
@@ -652,10 +652,10 @@ def refresh_summary_if_needed(self, session_id: str) -> None:
 ```
 
 **两个方法的调用时机**：
-- `get_context_messages()` — 每次 RAG 请求开始时调用（在 `prepare_retrieval()` 内部），为意图识别和查询改写提供上下文
-- `refresh_summary_if_needed()` — 每轮问答结束后异步调用（通过 `_schedule_summary_refresh()` 在后台线程执行），不阻塞用户看到答案
+- `get_context_messages()` — 每次 RAG 请求开始时调用(在 `prepare_retrieval()` 内部)，为意图识别和查询改写提供上下文
+- `refresh_summary_if_needed()` — 每轮问答结束后异步调用(通过 `_schedule_summary_refresh()` 在后台线程执行)，不阻塞用户看到答案
 
-### 5.3 检索时的用法
+### 7.3 检索时的用法
 
 ```text
 # qa_core/retrieval/store.py — MilvusHybridStore 类
@@ -674,7 +674,7 @@ def search_many(
     """对多个查询变体分别检索，合并重复 chunk 后统一重排。
 
     核心流程：
-    1. 清洗查询变体 → 逐个变体做轻量检索（先不 rerank）
+    1. 清洗查询变体 → 逐个变体做轻量检索(先不 rerank)
     2. 按 chunk_id/faq_id 合并重复命中，只保留最高分
     3. 按分数排序 → 取候选上限 → CrossEncoder 统一重排
     """
@@ -689,11 +689,11 @@ def search_many(
     return RetrievalResult(hits=hits[:k], ...)
 ```
 
-关键点：`merge_hits_by_document(merged: dict, hits: list)` 不是一个返回新列表的纯函数——它原地修改 `merged` 字典，以 `chunk_id`（或 `faq_id`）为 key，遇到同一文档的重复命中时只保留分数更高的那次。
+关键点：`merge_hits_by_document(merged: dict, hits: list)` 不是一个返回新列表的纯函数——它原地修改 `merged` 字典，以 `chunk_id`(或 `faq_id`)为 key，遇到同一文档的重复命中时只保留分数更高的那次。
 
 ---
 
-## 本讲实践闭环
+## 8. 本讲实践闭环
 
 | 项目 | 内容 |
 | --- | --- |
@@ -705,7 +705,7 @@ def search_many(
 
 通过标准：追问能补全指代，变体数量受控且去重，完整问题不会被过度改写。
 
-### 本讲从 0 到 1 实现闭环
+### 8.1 本讲从 0 到 1 实现闭环
 
 本讲位于“意图识别之后、检索之前”。它解决两个问题：追问太短时先改写成独立问题；普通问题召回不稳时生成少量等价变体。
 
@@ -752,7 +752,7 @@ flowchart LR
     RetrievalTest -. 验证 .-> Store
 ```
 
-#### Step 1：只在必要时改写追问
+#### 8.1.1 ：只在必要时改写追问
 
 目标：把“审批呢”这类省略问题改写成独立检索问题，但完整问题保持原样。
 
@@ -777,7 +777,7 @@ def rewrite_query_if_needed(query: str, history_messages, should_rewrite: bool) 
 
 设计解释：改写是有成本、有风险的动作。只有 `should_rewrite=True` 且有历史时才做；如果 LLM 返回空字符串，项目选择硬失败暴露问题，而不是静默回退原问题导致检索偏题。
 
-#### Step 2：构造改写 Prompt
+#### 8.1.2 ：构造改写 Prompt
 
 目标：让 LLM 只做“指代消解”，不要扩写成另一个问题。
 
@@ -793,7 +793,7 @@ rewritten = get_chat_model(streaming=False).invoke(messages).content.strip()
 
 设计解释：改写模型必须非流式，因为下游检索需要完整 query。
 
-#### Step 3：生成查询变体
+#### 8.1.3 ：生成查询变体
 
 目标：对清晰问题生成 2-3 个等价表达，提高召回覆盖率。
 
@@ -832,7 +832,7 @@ def generate_query_variants(query: str, *, enabled: bool) -> list[str]:
 
 设计解释：变体不是越多越好。真实代码先用低成本规则覆盖高频表达，只有规则不够时才调用 LLM；所有变体都会去重并受 `retrieval_variant_max + 1` 控制。
 
-#### Step 4：管理历史摘要
+#### 8.1.4 ：管理历史摘要
 
 目标：长会话中保留“摘要 + 最近 N 条”，避免把全部历史塞进 Prompt。
 
@@ -845,7 +845,7 @@ history_store.refresh_summary_if_needed(session_id)
 
 设计解释：改写依赖历史，但历史不能无限增长。摘要用于保留早期上下文，最近消息用于保留细节。
 
-#### Step 5：接入多查询检索
+#### 8.1.5 ：接入多查询检索
 
 验收命令：
 
@@ -876,21 +876,21 @@ python -m pytest tests/test_memory_history.py tests/test_retrieval_and_prompt.py
 - query variants 去重且数量受控。
 - `search_many()` 能接收多个变体并按文档合并结果。
 
-## 重点掌握
+## 9. 重点掌握
 
 | 优先级 | 内容 | 原因 |
 | --- | --- | --- |
-| ★★★ 必会 | 查询改写（Query Rewrite）的触发条件：requires\_rewrite=True + 有历史消息 | 多轮对话中指代消解的实现方式 |
-| ★★★ 必会 | 查询变体（Query Variants）的作用：将原问题扩展为多个等价表达提高召回覆盖率 | 召回增强的核心手段 |
-| ★★★ 必会 | 历史压缩策略："摘要（200-1200 字符）+ 最近 8 条完整消息"，第 15 轮开始触发压缩 | 管理 LLM 上下文窗口的关键设计 |
+| ★★★ 必会 | 查询改写(Query Rewrite)的触发条件：requires\_rewrite=True + 有历史消息 | 多轮对话中指代消解的实现方式 |
+| ★★★ 必会 | 查询变体(Query Variants)的作用：将原问题扩展为多个等价表达提高召回覆盖率 | 召回增强的核心手段 |
+| ★★★ 必会 | 历史压缩策略："摘要(200-1200 字符)+ 最近 8 条完整消息"，第 15 轮开始触发压缩 | 管理 LLM 上下文窗口的关键设计 |
 | ★★ 理解 | rewrite\_query\_if\_needed() 的实现：非流式 LLM，聚焦最近 8 条历史，改写为独立检索问题 | 理解改写模块的具体代码 |
-| ★★ 理解 | 变体生成的两种方式：本地启发式（关键词替换，快、免费）vs LLM 结构化输出（灵活） | 理解性能与灵活性的平衡 |
+| ★★ 理解 | 变体生成的两种方式：本地启发式(关键词替换，快、免费)vs LLM 结构化输出(灵活) | 理解性能与灵活性的平衡 |
 | ★★ 理解 | \_looks\_like\_short\_structured\_question() 的判断逻辑：短问题且命中高频句式标记时跳过 LLM 扩展 | 避免对清晰问题做无收益的 LLM 调用 |
 | ★★ 理解 | 完整问题不改写的原则：清晰的问题保持原样，防止"改偏" | 重要的设计约束 |
-| ★ 了解 | 历史摘要的异步刷新机制（refresh\_summary\_if\_needed） | 了解实现细节 |
+| ★ 了解 | 历史摘要的异步刷新机制(refresh\_summary\_if\_needed) | 了解实现细节 |
 | ★ 了解 | search\_many() 的多查询合并流程 | 本讲 5.3 节展开 |
 
-## 本讲小结
+## 10. 本讲小结
 
 - **追问改写**只在 `requires_rewrite=True` 且有历史时执行，避免对所有问题增加 LLM 调用
 - 改写聚焦最近 8 条历史，使用非流式 LLM 生成独立的检索问题

@@ -94,13 +94,13 @@
         "tab": "RAG",
         "groups": [
           {
-            "group": "总览",
+            "group": "Overview",
             "pages": [
               "RAG/index"
             ]
           },
           {
-            "group": "基础入门",
+            "group": "Foundations",
             "pages": [
               "RAG/foundations/project-overview",
               "RAG/foundations/rag-fundamentals",
@@ -108,7 +108,7 @@
             ]
           },
           {
-            "group": "检索工程",
+            "group": "Retrieval Engineering",
             "pages": [
               "RAG/retrieval/chunking-strategy",
               "RAG/retrieval/embedding-and-bge-m3",
@@ -120,7 +120,7 @@
             ]
           },
           {
-            "group": "链路编排",
+            "group": "Pipeline & Orchestration",
             "pages": [
               "RAG/pipeline/intent-classification",
               "RAG/pipeline/qaservice-orchestration",
@@ -131,7 +131,7 @@
             ]
           },
           {
-            "group": "生产治理",
+            "group": "Production RAG",
             "pages": [
               "RAG/production/kb-versioning",
               "RAG/production/data-isolation",
@@ -142,7 +142,7 @@
             ]
           },
           {
-            "group": "进阶专题",
+            "group": "Advanced Topics",
             "pages": [
               "RAG/advanced/rag-optimization",
               "RAG/advanced/rag-evaluation",
@@ -151,7 +151,7 @@
             ]
           },
           {
-            "group": "技术附录",
+            "group": "Technical Appendix",
             "pages": [
               "RAG/appendix/pydantic",
               "RAG/appendix/sha256-fingerprint",

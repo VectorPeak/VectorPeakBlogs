@@ -12,7 +12,7 @@ icon: "lock-keyhole"
 **上一讲**：[知识库多版本管理](/RAG/production/kb-versioning)  
 **下一讲**：[文档入库与索引链路](/RAG/production/ingestion-pipeline)
 
-## 本讲目标
+## 1. 本讲目标
 
 - 理解 RAG 系统中的数据隔离需求
 - 掌握 DataScope 的结构和各字段含义
@@ -21,14 +21,14 @@ icon: "lock-keyhole"
 
 ---
 
-## 第一部分：前置知识 — 多租户与数据隔离
+## 2. 前置知识 — 多租户与数据隔离
 
-### 1.1 什么是多租户
+### 2.1 什么是多租户
 
-**多租户（Multi-Tenancy）** 是指同一个软件实例同时服务多个客户（租户），每个客户的数据必须完全隔离。
+**多租户(Multi-Tenancy)** 是指同一个软件实例同时服务多个客户(租户)，每个客户的数据必须完全隔离。
 
 ```text
-传统系统（单租户）：
+传统系统(单租户)：
   一家公司 → 一套部署 → 一个数据库
 
 多租户系统：
@@ -38,7 +38,7 @@ icon: "lock-keyhole"
            通过 tenant_id 字段区分数据
 ```
 
-### 1.2 RAG 系统中的隔离维度
+### 2.2 RAG 系统中的隔离维度
 
 在 RAG 知识问答系统中，数据隔离有几个维度：
 
@@ -51,7 +51,7 @@ icon: "lock-keyhole"
 
 ---
 
-## 第二部分：DataScope 数据结构
+## 3. DataScope 数据结构
 
 ```python
 # qa_core/governance/data_scope.py
@@ -94,7 +94,7 @@ class DataScope:
         return clauses
 ```
 
-### 2.2 可见性层级
+### 3.1 可见性层级
 
 ```mermaid
 flowchart TD
@@ -132,28 +132,28 @@ flowchart TD
 
 **这张图定义了数据可见性的层级模型——它决定了"谁能看到什么"。**
 
-三层从外到内呈同心圆嵌套关系（外层内容被内层包含）：
+三层从外到内呈同心圆嵌套关系(外层内容被内层包含)：
 
 | 层级 | 典型数据 | 谁能看到 |
 | --- | --- | --- |
-| `public` | 公司公告、公开制度、产品手册 | **所有人**（包括未登录用户） |
-| `internal` | 部门流程文档、操作手册、内部培训资料 | internal 用户 + restricted 用户（**包含** public 内容） |
-| `restricted` | 高管会议纪要、薪酬方案、未公开合同 | 仅 restricted 用户（**包含** public + internal 内容） |
+| `public` | 公司公告、公开制度、产品手册 | **所有人**(包括未登录用户) |
+| `internal` | 部门流程文档、操作手册、内部培训资料 | internal 用户 + restricted 用户(**包含** public 内容) |
+| `restricted` | 高管会议纪要、薪酬方案、未公开合同 | 仅 restricted 用户(**包含** public + internal 内容) |
 
-关键的包含关系：`public ⊂ internal ⊂ restricted`。箭头从外指向内（"包含于"），而不是从内指向外。这个设计意味着：
+关键的包含关系：`public ⊂ internal ⊂ restricted`。箭头从外指向内("包含于")，而不是从内指向外。这个设计意味着：
 
 - 标记为 `internal` 的用户，检索时自动包含 `public` 和 `internal` 的数据
 - 标记为 `restricted` 的用户，检索时自动包含全部三级数据
 - 不存在"只查 restricted 不查 internal"的情况——上级天然覆盖下级
 
-**为什么不是"各层级独立，用户属于哪个层级就只查哪个"？** 因为在企业场景中，高层级用户（如合规审计员）查资料时，如果搜不到公司公告（public），会很困惑。嵌套模型让权限高的用户看到的信息更全，而不是更窄。
+**为什么不是"各层级独立，用户属于哪个层级就只查哪个"？** 因为在企业场景中，高层级用户(如合规审计员)查资料时，如果搜不到公司公告(public)，会很困惑。嵌套模型让权限高的用户看到的信息更全，而不是更窄。
 
-对应的 Milvus 过滤表达式（见 2.1 节代码）：
+对应的 Milvus 过滤表达式(见 2.1 节代码)：
 - `visibility="public"` → `visibility in ["public"]`
 - `visibility="internal"` → `visibility in ["public", "internal"]`
 - `visibility="restricted"` → `visibility in ["public", "internal", "restricted"]`
 
-### 多维度隔离全景
+### 3.2 多维度隔离全景
 
 ```mermaid
 flowchart TD
@@ -189,21 +189,21 @@ flowchart TD
 | 可见级别 | `visibility` | 同一数据集下，敏感资料仅限特定用户 | `"public"`, `"internal"`, `"restricted"` |
 | 角色控制 | `allowed_roles` | 同一可见级别下，特定角色才能访问 | `["legal", "hr", "admin"]` |
 
-四个维度从上到下逐步收紧：先限定租户（最粗粒度），再限定数据集，再限定可见级别，最后检查角色。最终拼成的 Milvus 表达式类似：
+四个维度从上到下逐步收紧：先限定租户(最粗粒度)，再限定数据集，再限定可见级别，最后检查角色。最终拼成的 Milvus 表达式类似：
 
 ```text
 tenant_id == "company_a" && dataset_id == "production" && visibility in ["public", "internal"] && array_contains(allowed_roles, "employee")
 ```
 
-**为什么不用一个大而全的字段（如 access\_level）把四个维度都编码进去？** 因为运维场景中这四个维度的管理节奏完全不同：
-- `tenant_id` 几乎不变（一套部署服务一家公司）
-- `dataset_id` 在知识库版本更新时可能切换（从 staging 切到 production）
+**为什么不用一个大而全的字段(如 access\_level)把四个维度都编码进去？** 因为运维场景中这四个维度的管理节奏完全不同：
+- `tenant_id` 几乎不变(一套部署服务一家公司)
+- `dataset_id` 在知识库版本更新时可能切换(从 staging 切到 production)
 - `visibility` 随文档敏感性逐文档设置
 - `allowed_roles` 随组织架构调整而增减
 
 拆成四个独立字段后，每个维度的管理脚本可以独立运行，不需要拼一个复杂的编码规则。Milvus 的 AND 拼接天然支持这种多字段组合，性能没有额外损耗。
 
-### 2.3 DataScope 的解析
+### 3.3 DataScope 的解析
 
 ```text
 def resolve_data_scope(
@@ -226,9 +226,9 @@ def resolve_data_scope(
 
 ---
 
-## 第三部分：入库时的隔离字段
+## 4. 入库时的隔离字段
 
-### 3.1 每个 chunk 的 metadata 中包含隔离信息
+### 4.1 每个 chunk 的 metadata 中包含隔离信息
 
 ```text
 # 文档入库时
@@ -256,7 +256,7 @@ faq_metadata = {
 }
 ```
 
-### 3.2 入库时指定数据范围
+### 4.2 入库时指定数据范围
 
 ```text
 # ingest_directory() 接收完整的隔离参数
@@ -273,9 +273,9 @@ ingest_directory(
 
 ---
 
-## 第四部分：检索时的过滤表达式
+## 5. 检索时的过滤表达式
 
-### 4.1 拼接完整过滤表达式
+### 5.1 拼接完整过滤表达式
 
 ```text
 # 一次实际检索的过滤器拼接
@@ -298,7 +298,7 @@ expr = " and ".join(clauses)
 # 结果：'source == "hr" and kb_version == "kb_xxx" and tenant_id == "company_a" and dataset_id == "production_v2" and visibility in ["public", "internal"] and array_contains(allowed_roles, "employee")'
 ```
 
-### 4.2 在前端请求中传入隔离参数
+### 5.2 在前端请求中传入隔离参数
 
 ```text
 // WebSocket 请求
@@ -317,9 +317,9 @@ expr = " and ".join(clauses)
 
 ---
 
-## 第五部分：安全转义
+## 6. 安全转义
 
-### 5.1 为什么要安全转义
+### 6.1 为什么要安全转义
 
 Milvus 的过滤表达式是一个类 SQL 的字符串。如果直接把用户输入拼入表达式，存在注入风险：
 
@@ -329,7 +329,7 @@ expr = f'source == "{source_filter}"'
 # 结果：source == "hr" or 1==1 or "" → 绕过了 source 过滤！
 ```
 
-### 5.2 escape\_expr\_value() 实现
+### 6.2 escape\_expr\_value() 实现
 
 ```python
 def escape_expr_value(value: str) -> str:
@@ -339,7 +339,7 @@ def escape_expr_value(value: str) -> str:
 
 Milvus 表达式使用双引号包裹字符串值，因此只需要转义反斜杠和双引号。
 
-### 5.3 白名单 + 转义双重保护
+### 6.3 白名单 + 转义双重保护
 
 ```text
 # 双重保护
@@ -355,41 +355,41 @@ if source_filter:
 
 ---
 
-## 第六部分：本方案的适用场景与局限
+## 7. 本方案的适用场景与局限
 
-### 6.1 适用场景
+### 7.1 适用场景
 
 - **轻量多租户**：几个到几十个租户，通过 tenant\_id 区分
 - **教学和演示**：展示多租户隔离的概念
 - **企业内部**：按部门、角色做数据隔离
 
-### 6.2 当前局限
+### 7.2 当前局限
 
 - **共享 Collection**：所有租户的数据在同一个 Milvus Collection 中，通过表达式过滤实现逻辑隔离
 - **角色过滤**：`allowed_roles` 存储为数组，使用 `array_contains` 过滤，在小规模场景下可行
 - **不是真正的多租户架构**：如果扩展到数百个租户，建议使用 Milvus 的 Partition Key 功能
 
-### 6.3 升级路径
+### 7.3 升级路径
 
 如果项目需要更严格的隔离：
 
 ```text
 当前方案：共享 Collection + 表达式过滤
   ↓
-升级方案 1：Partition Key（按 tenant_id 分区）
+升级方案 1：Partition Key(按 tenant_id 分区)
   ↓
-升级方案 2：Database 级隔离（每个租户独立的 Milvus Database）
+升级方案 2：Database 级隔离(每个租户独立的 Milvus Database)
 ```
 
 但当前方案对于教学和演示目的已经足够，而且实现简单、易于理解。
 
 ---
 
-## 第七部分：场景配置全貌 — 如何维护既有业务场景
+## 8. 场景配置全貌 — 如何维护既有业务场景
 
 虽然本讲的主题是数据隔离，但数据隔离和场景配置是紧密相关的。一个业务场景的完整配置决定了它的 source 白名单、数据范围、知识库版本和隔离策略。当前项目已经冻结为 8 个业务场景，一期不再新增第 9 个场景；这里重点讲清楚既有场景如何维护，以及为什么维护 source、FAQ 和资料不需要改主链路代码。
 
-### 6.1 场景配置的层级结构
+### 8.1 场景配置的层级结构
 
 ```mermaid
 flowchart TD
@@ -413,7 +413,7 @@ flowchart TD
     style SD fill:#ECFDF5,stroke:#059669,stroke-width:2px
 ```
 
-### 6.2 scenario.toml 完整字段说明
+### 8.2 scenario.toml 完整字段说明
 
 以 `enterprise_knowledge` 场景为例：
 
@@ -439,13 +439,13 @@ faq_collection = "enterprise_knowledge_faq"
 doc_collection = "enterprise_knowledge_doc"
 # ↑ 每个场景有独立的 FAQ 和文档集合，避免跨场景串库
 
-# === 选填：source 中文标签（页面下拉框展示用） ===
+# === 选填：source 中文标签(页面下拉框展示用) ===
 [source_labels]
 hr = "HR 制度"
 it = "IT 支持"
 finance = "财务报销"
 
-# === 选填：source 推断正则（用于自动推断用户问题属于哪个 source） ===
+# === 选填：source 推断正则(用于自动推断用户问题属于哪个 source) ===
 [source_patterns]
 hr = "(入职|离职|转正|调岗|考勤|请假|年假|加班|薪酬|绩效|社保)"
 it = "(VPN|密码|网络|打印机|电脑|邮箱|账号|wifi|系统|OA|审批流|服务器)"
@@ -462,12 +462,12 @@ sample_questions = [
     "员工报销需要准备哪些材料",
 ]
 
-# === 选填：数据目录（默认值 = 场景目录下的 data/） ===
+# === 选填：数据目录(默认值 = 场景目录下的 data/) ===
 # data_root = "data"
 # faq_csv_path = "faq.csv"
 ```
 
-### 6.3 维护一个既有场景的完整步骤
+### 8.3 维护一个既有场景的完整步骤
 
 假设要维护 `engineering_project_qa` 场景，补充“图纸会审”资料。只需以下步骤：
 
@@ -541,7 +541,7 @@ question,answer,source
 python scripts/rebuild_kb_version.py --scenario engineering_project_qa --new-version --force --quality-gate --activate
 ```
 
-**步骤 6**：评测验证（可选但推荐）
+**步骤 6**：评测验证(可选但推荐)
 
 在 `eval_sets/` 下补充该场景的回归样本，然后运行：
 
@@ -554,13 +554,13 @@ python scripts/check_evaluation_gate.py --report reports/evaluation/business_dep
 
 重启服务，在页面选择「工程项目资料助手」后提问新增 FAQ 或资料相关问题。维护既有场景时仍然是**代码零修改，不需要改任何 Python 文件**。
 
-### 6.4 场景配置如何影响主链路
+### 8.4 场景配置如何影响主链路
 
 ```mermaid
 flowchart LR
     subgraph Request["用户请求"]
         Q["query: '二类医疗器械注册需要哪些材料'"]
-        SF["source_filter: null（未选）"]
+        SF["source_filter: null(未选)"]
         SID["scenario_id: 'medical_compliance'"]
     end
 
@@ -586,9 +586,9 @@ flowchart LR
     style SourceInfer fill:#FFFBEB,stroke:#D97706,stroke-width:2px
 ```
 
-### 6.5 场景边界检测
+### 8.5 场景边界检测
 
-为了防止用户在 A 场景下提问 B 场景的问题（导致低质量召回），系统内置了场景边界检测。
+为了防止用户在 A 场景下提问 B 场景的问题(导致低质量召回)，系统内置了场景边界检测。
 
 `detect_scenario_boundary()` 会遍历**所有已注册场景的 source\_patterns**，如果用户问题命中了其他场景的 source 正则，则返回提示：
 
@@ -645,16 +645,16 @@ def detect_scenario_boundary(query: str, current_scenario: ScenarioDefinition) -
 
 **工作流程**：
 
-1. 先用 `score_source_matches()` 计算当前场景的匹配分数。如果当前场景已有足够证据（`>= CURRENT_SCENARIO_SAFE_SCORE`），说明问题在本场景内有明确归属，直接放行。
-2. 遍历所有其他已注册场景，逐一计算 `score_source_matches()`，找到匹配分数最高的那个（`best_score`）。
-3. 如果最高分低于 `MIN_OTHER_SCENARIO_SCORE`（12 分），说明没有足够强的跨场景证据，不阻断。
+1. 先用 `score_source_matches()` 计算当前场景的匹配分数。如果当前场景已有足够证据(`>= CURRENT_SCENARIO_SAFE_SCORE`)，说明问题在本场景内有明确归属，直接放行。
+2. 遍历所有其他已注册场景，逐一计算 `score_source_matches()`，找到匹配分数最高的那个(`best_score`)。
+3. 如果最高分低于 `MIN_OTHER_SCENARIO_SCORE`(12 分)，说明没有足够强的跨场景证据，不阻断。
 4. 否则返回 `crossed=True` 和匹配到的目标场景信息，由上游决定如何提示用户切换。
 
 辅助函数 `score_source_matches()` 和 `score_source_map()` 负责计算得分：命中 source\_pattern 正则的次数乘以 10，加上匹配文本总长度，再减去 source 配置顺序的优先级偏移。这样分数高的 source 一定是"频率高、命中长、配置靠前"的那个。
 
 这个机制保护了检索质量——用户不会因为场景选错而得到错误来源的资料。
 
-### 6.6 场景配置与数据隔离的关系
+### 8.6 场景配置与数据隔离的关系
 
 | 配置层 | 作用 | 数据隔离维度 |
 | --- | --- | --- |
@@ -667,7 +667,7 @@ def detect_scenario_boundary(query: str, current_scenario: ScenarioDefinition) -
 
 ---
 
-## 本讲实践闭环
+## 9. 本讲实践闭环
 
 | 项目 | 内容 |
 | --- | --- |
@@ -679,7 +679,7 @@ def detect_scenario_boundary(query: str, current_scenario: ScenarioDefinition) -
 
 通过标准：同一 collection 中的数据不会跨场景、跨版本、跨租户混查。
 
-### 本讲从 0 到 1 实现闭环
+### 9.1 本讲从 0 到 1 实现闭环
 
 这一讲要实现的是“同一个 collection 里可以放多场景、多版本、多租户数据，但查询时不能混查”。实现顺序如下：
 
@@ -779,22 +779,22 @@ python -m pytest tests/test_retrieval_and_prompt.py -q
 
 验收重点：数据隔离既要在入库 metadata 中存在，也要在检索 expr 中生效；只做其中一边都不完整。
 
-## 重点掌握
+## 10. 重点掌握
 
 | 优先级 | 内容 | 原因 |
 | --- | --- | --- |
-| ★★★ 必会 | DataScope 的四维隔离结构：tenant\_id（租户）、dataset\_id（数据集）、visibility（可见性）、user\_roles/allowed\_roles（角色） | 数据隔离的完整模型 |
+| ★★★ 必会 | DataScope 的四维隔离结构：tenant\_id(租户)、dataset\_id(数据集)、visibility(可见性)、user\_roles/allowed\_roles(角色) | 数据隔离的完整模型 |
 | ★★★ 必会 | 可见性层级嵌套关系：public ⊂ internal ⊂ restricted，上层用户自动覆盖下层内容 | 企业权限管理的常见模型 |
 | ★★★ 必会 | 隔离字段写入 chunk metadata + 检索时拼入 Milvus expr 实现逻辑隔离 | 数据隔离的核心实现方式 |
-| ★★ 理解 | 白名单校验 + 安全转义（escape\_expr\_value）的双重保护 | 防止表达式注入的关键设计 |
-| ★★ 理解 | 场景配置（scenario.toml）的结构：valid\_sources、faq/doc\_collection、source\_patterns 等 | 理解如何维护业务场景 |
-| ★★ 理解 | 场景边界检测（detect\_scenario\_boundary）：当问题明显属于其他场景时给出提示 | 防止选错场景导致低质量召回 |
-| ★ 了解 | 轻量多租户方案的适用场景和局限性（数十个租户 vs 数百个租户需升级） | 了解设计边界 |
-| ★ 了解 | source 自动推断（从 scenario.toml 的 source\_patterns 匹配） | 回顾第 4 讲内容 |
+| ★★ 理解 | 白名单校验 + 安全转义(escape\_expr\_value)的双重保护 | 防止表达式注入的关键设计 |
+| ★★ 理解 | 场景配置(scenario.toml)的结构：valid\_sources、faq/doc\_collection、source\_patterns 等 | 理解如何维护业务场景 |
+| ★★ 理解 | 场景边界检测(detect\_scenario\_boundary)：当问题明显属于其他场景时给出提示 | 防止选错场景导致低质量召回 |
+| ★ 了解 | 轻量多租户方案的适用场景和局限性(数十个租户 vs 数百个租户需升级) | 了解设计边界 |
+| ★ 了解 | source 自动推断(从 scenario.toml 的 source\_patterns 匹配) | 回顾第 4 讲内容 |
 
-## 本讲小结
+## 11. 本讲小结
 
-- **DataScope** 封装了一次查询的数据访问范围（租户、数据集、可见性、角色）
+- **DataScope** 封装了一次查询的数据访问范围(租户、数据集、可见性、角色)
 - **可见性层级**：public ⊂ internal ⊂ restricted，下层包含上层内容
 - **隔离字段在入库时写入**每个 chunk 的 metadata，检索时拼入 Milvus 表达式
 - **双重保护**：白名单校验 + 安全转义，防止表达式注入

@@ -1,7 +1,7 @@
 ---
 title: "测试体系"
 description: "介绍接口验收、回归测试和 RAG 系统测试设计"
-icon: "flask-conical"
+icon: "list-check"
 ---
 
 # 测试体系
@@ -12,7 +12,7 @@ icon: "flask-conical"
 **上一讲**：[RAG 回归验收与入库质量](/RAG/advanced/rag-evaluation)  
 **下一讲**：[LangSmith 观测、Trace 与生产化部署](/RAG/production/observability-tracing)
 
-## 本讲目标
+## 1. 本讲目标
 
 - 理解 RAG 系统测试的分层策略
 - 掌握纯逻辑测试、API 保护测试、入库质量检查测试的设计模式
@@ -24,9 +24,9 @@ icon: "flask-conical"
 
 ---
 
-## 第一部分：前置知识 — RAG 测试的特殊挑战
+## 2. 前置知识 — RAG 测试的特殊挑战
 
-### 1.1 为什么不能只用 E2E 测试
+### 2.1 为什么不能只用 E2E 测试
 
 传统 Web 应用的端到端测试：
 
@@ -43,7 +43,7 @@ RAG 系统的 E2E 测试面临几个问题：
 
 **解决方案**：纯逻辑测试 + 分层测试。
 
-### 1.2 测试金字塔
+### 2.2 测试金字塔
 
 ```mermaid
 flowchart TD
@@ -71,9 +71,9 @@ flowchart TD
 
 ---
 
-## 第二部分：纯逻辑单元测试
+## 3. 纯逻辑单元测试
 
-### 2.1 测试文件组织
+### 3.1 测试文件组织
 
 ```text
 tests/
@@ -83,7 +83,7 @@ tests/
 └── test_quality_gates.py           # 入库质量、RAG 回归验收、Bad Case
 ```
 
-### 2.2 意图识别测试（纯逻辑）
+### 3.2 意图识别测试(纯逻辑)
 
 ```python
 # tests/test_intent_and_scenarios.py
@@ -105,9 +105,9 @@ class IntentClassifierTests(unittest.TestCase):
         # 规则命中 → 不调用 LLM → reason 是确定性字符串
 ```
 
-**关键模式**：这些测试验证的是**规则路径**，不经过 LLM。测试空历史（`[]`）触发规则判定，可以验证规则逻辑的正确性。
+**关键模式**：这些测试验证的是**规则路径**，不经过 LLM。测试空历史(`[]`)触发规则判定，可以验证规则逻辑的正确性。
 
-### 2.3 source 推断测试（跨场景）
+### 3.3 source 推断测试(跨场景)
 
 ```python
 class ScenarioRegistryTests(unittest.TestCase):
@@ -130,7 +130,7 @@ class ScenarioRegistryTests(unittest.TestCase):
 
 **关键模式**：使用 `resolve(scenario_id)` 加载真实场景 TOML 配置，验证 source\_patterns 的匹配逻辑。这是对"配置即代码"的测试。
 
-### 2.4 场景边界检测测试
+### 3.4 场景边界检测测试
 
 ```python
 def test_scenario_boundary_detects_question_from_other_business_scene(self):
@@ -144,7 +144,7 @@ def test_scenario_boundary_detects_question_from_other_business_scene(self):
     self.assertEqual(decision.matched_source, "safety")
 ```
 
-### 2.5 检索过滤测试（纯逻辑）
+### 3.5 检索过滤测试(纯逻辑)
 
 ```python
 # tests/test_retrieval_and_prompt.py
@@ -175,7 +175,7 @@ class RetrievalFilterTests(unittest.TestCase):
 
 **关键模式**：不连接 Milvus，只验证表达式字符串的正确性。这比启动 Milvus 再验证快 100 倍。
 
-### 2.6 上下文构建测试
+### 3.6 上下文构建测试
 
 ```python
 class ContextBuilderTests(unittest.TestCase):
@@ -205,7 +205,7 @@ class ContextBuilderTests(unittest.TestCase):
         # ... 见源码 tests/test_retrieval_and_prompt.py
 ```
 
-### 2.7 Prompt Profile 选择测试
+### 3.7 Prompt Profile 选择测试
 
 ```python
 class PromptProfileTests(unittest.TestCase):
@@ -232,9 +232,9 @@ class PromptProfileTests(unittest.TestCase):
 
 ---
 
-## 第三部分：API 保护测试
+## 4. API 保护测试
 
-### 3.1 管理令牌验证
+### 4.1 管理令牌验证
 
 ```python
 # tests/test_api_protection.py
@@ -271,7 +271,7 @@ class ApiProtectionTests(unittest.TestCase):
 - 临时修改 `settings` 对象来模拟不同配置
 - `try/finally` 确保测试后恢复原始配置
 
-### 3.2 限流测试
+### 4.2 限流测试
 
 ```python
 def test_rate_limit_can_block_after_limit(self):
@@ -289,9 +289,9 @@ def test_rate_limit_can_block_after_limit(self):
 
 ---
 
-## 第四部分：验收逻辑测试
+## 5. 验收逻辑测试
 
-### 4.1 入库质量检查测试
+### 5.1 入库质量检查测试
 
 ```python
 class QualityGateTests(unittest.TestCase):
@@ -312,7 +312,7 @@ class QualityGateTests(unittest.TestCase):
         self.assertTrue(result["ok"])
 ```
 
-### 4.2 RAG 回归验收 — 分组回归检测
+### 5.2 RAG 回归验收 — 分组回归检测
 
 ```python
 def test_evaluation_gate_rejects_scenario_group_regression(self):
@@ -331,7 +331,7 @@ def test_evaluation_gate_rejects_scenario_group_regression(self):
                   {item["metric"] for item in result["failures"]})
 ```
 
-### 4.3 Bad Case 分类测试
+### 5.3 Bad Case 分类测试
 
 ```python
 def test_bad_case_classifier_marks_environment_noise(self):
@@ -352,9 +352,9 @@ def test_bad_case_classifier_marks_retrieval_quality(self):
 
 ---
 
-## 第五部分：运行测试
+## 6. 运行测试
 
-### 5.1 运行全部单元测试
+### 6.1 运行全部单元测试
 
 ```bash
 python -m pytest tests -q
@@ -368,7 +368,7 @@ python -m pytest tests -q
 
 当前测试集包含 104 个 pytest 用例，另有 10 个 subtests。大部分用例是纯逻辑和验收逻辑测试，不依赖 Milvus、MySQL 或 LLM；完整耗时以本机环境为准。
 
-### 5.2 运行特定测试文件
+### 6.2 运行特定测试文件
 
 ```bash
 # 只测试意图识别和场景
@@ -378,10 +378,10 @@ python -m pytest tests/test_intent_and_scenarios.py -q
 python -m pytest tests/test_retrieval_and_prompt.py -q
 ```
 
-### 5.3 在 CI/回归检查中使用
+### 6.3 在 CI/回归检查中使用
 
 ```text
-# 项目守护检查（包含测试）
+# 项目守护检查(包含测试)
 python scripts/check_project_guardrails.py
 
 # 接口和页面验收
@@ -391,7 +391,7 @@ python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000
 
 ---
 
-## 本讲实践闭环
+## 7. 本讲实践闭环
 
 | 项目 | 内容 |
 | --- | --- |
@@ -403,7 +403,7 @@ python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000
 
 通过标准：核心逻辑可在不依赖外部服务的情况下快速回归，接口和质量门禁能阻断明显退化。
 
-### 本讲从 0 到 1 实现闭环
+### 7.1 本讲从 0 到 1 实现闭环
 
 这一讲不是追求“测试越多越好”，而是建立低成本、可重复的回归网。实现顺序如下：
 
@@ -499,23 +499,23 @@ python -m pytest tests/test_intent_and_scenarios.py tests/test_retrieval_and_pro
 
 验收重点：用低成本纯逻辑测试覆盖大部分规则，少量接口/E2E 只验证关键链路；不要把所有测试都做成依赖 Milvus、MySQL、LLM 的慢测试。
 
-## 重点掌握
+## 8. 重点掌握
 
 | 优先级 | 内容 | 原因 |
 | --- | --- | --- |
-| ★★★ 必会 | RAG 测试金字塔：大量纯逻辑单元测试（毫秒级）→ 适量验收逻辑测试 → 少量 E2E 验收 | 理解 RAG 系统测试的分层策略 |
+| ★★★ 必会 | RAG 测试金字塔：大量纯逻辑单元测试(毫秒级)→ 适量验收逻辑测试 → 少量 E2E 验收 | 理解 RAG 系统测试的分层策略 |
 | ★★★ 必会 | 纯逻辑测试模式：绕过 HTTP，直接调用核心函数，不依赖 Milvus/MySQL/LLM | RAG 测试的核心方法论，面试常问 |
 | ★★★ 必会 | 验收逻辑测试验证分组回归检测：全局均值正常但某个场景退化时，验收必须拒绝 | 理解分组验收的测试方法 |
-| ★★ 理解 | 意图识别测试验证规则路径（空历史 [] 触发规则判定，不经过 LLM） | 纯逻辑测试的具体例子 |
-| ★★ 理解 | 检索过滤测试验证表达式字符串（不连接 Milvus，只检查 expr 字符串内容） | 绕过外部依赖的测试技巧 |
+| ★★ 理解 | 意图识别测试验证规则路径(空历史 [] 触发规则判定，不经过 LLM) | 纯逻辑测试的具体例子 |
+| ★★ 理解 | 检索过滤测试验证表达式字符串(不连接 Milvus，只检查 expr 字符串内容) | 绕过外部依赖的测试技巧 |
 | ★★ 理解 | API 保护测试：临时修改 settings + try/finally 恢复的模式 | 模拟不同配置的测试技巧 |
 | ★★ 理解 | Prompt Profile 选择测试：pricing 问题必须用 pricing\_guard 而非意图兜底 | 验证选择优先级的正确性 |
-| ★ 了解 | 测试文件组织方式（4 个测试文件，104 个用例） | 了解测试规模 |
-| ★ 了解 | 运行测试的命令（pytest）和 CI 集成方式（check\_project\_guardrails） | 了解如何执行测试 |
+| ★ 了解 | 测试文件组织方式(4 个测试文件，104 个用例) | 了解测试规模 |
+| ★ 了解 | 运行测试的命令(pytest)和 CI 集成方式(check\_project\_guardrails) | 了解如何执行测试 |
 
-## 本讲小结
+## 9. 本讲小结
 
-- **测试金字塔**：大量纯逻辑测试（毫秒级）→ 适量验收逻辑测试 → 少量 E2E 验收
+- **测试金字塔**：大量纯逻辑测试(毫秒级)→ 适量验收逻辑测试 → 少量 E2E 验收
 - **纯逻辑测试绕过外部依赖**：不连接 Milvus/MySQL/LLM，直接调用核心函数
 - **临时修改 settings** + **try/finally 恢复**：模拟不同配置而不影响其他测试
 - **分组验收测试**：确保全局均值不会掩盖局部退化
@@ -523,7 +523,7 @@ python -m pytest tests/test_intent_and_scenarios.py tests/test_retrieval_and_pro
 
 ---
 
-## 本讲能力小结
+## 10. 本讲能力小结
 
 学完第 18 讲后，你应该能把项目的测试体系讲清楚：
 

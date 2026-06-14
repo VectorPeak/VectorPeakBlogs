@@ -1,7 +1,7 @@
 ---
 title: "QAService 编排"
 description: "介绍 QAService 如何统一编排意图、检索、上下文和生成"
-icon: "workflow"
+icon: "cubes"
 ---
 
 # QAService 编排
@@ -12,24 +12,24 @@ icon: "workflow"
 **上一讲**：[Milvus 混合检索深度解析](/RAG/retrieval/milvus-hybrid-search)  
 **下一讲**：[RAG Pipeline 主流程深度解析](/RAG/pipeline/rag-pipeline)
 
-## 本讲目标
+## 1. 本讲目标
 
-- 理解 QAService 作为服务编排层（Orchestration Layer）的设计理念
+- 理解 QAService 作为服务编排层(Orchestration Layer)的设计理念
 - 掌握"服务门面"模式在 RAG 系统中的应用
 - 理解两个核心方法的职责分工
-- 理解 Generator（生成器）在流式问答中的角色
+- 理解 Generator(生成器)在流式问答中的角色
 
 ---
 
-## 第一部分：前置知识 — 服务编排模式
+## 2. 前置知识 — 服务编排模式
 
-### 1.1 什么是服务编排
+### 2.1 什么是服务编排
 
-**服务编排（Service Orchestration）** 是软件架构中的一种模式：用一个中心化的"编排器"来协调多个子服务的调用顺序和数据流转。
+**服务编排(Service Orchestration)** 是软件架构中的一种模式：用一个中心化的"编排器"来协调多个子服务的调用顺序和数据流转。
 
 打个比方：
 - **没有编排**：每个厨师自己决定做什么菜、用什么食材、先炒哪个后炒哪个 → 混乱
-- **有编排**：主厨（编排器）决定菜单、分配任务、协调出菜顺序 → 有序
+- **有编排**：主厨(编排器)决定菜单、分配任务、协调出菜顺序 → 有序
 
 在 RAG 系统中，"子服务"包括：
 - 意图识别 → 判断用户想干什么
@@ -44,7 +44,7 @@ icon: "workflow"
 
 QAService 就是协调这些子服务的"主厨"。
 
-### 1.2 QAService 不做什么（边界）
+### 2.2 QAService 不做什么(边界)
 
 ```python
 class QAService:
@@ -67,9 +67,9 @@ class QAService:
 
 ---
 
-## 第二部分：QAService 的两个核心方法
+## 3. QAService 的两个核心方法
 
-### 2.1 方法职责对照
+### 3.1 方法职责对照
 
 ```mermaid
 flowchart TD
@@ -91,7 +91,7 @@ flowchart TD
     style DebugFn fill:#FFFBEB,stroke:#D97706,stroke-width:2px
 ```
 
-### 2.2 stream\_query() — 唯一主干链路
+### 3.2 stream\_query() — 唯一主干链路
 
 ```python
 def stream_query(self, query, source_filter, session_id, ...):
@@ -108,9 +108,9 @@ def stream_query(self, query, source_filter, session_id, ...):
     )
 ```
 
-`yield from` 是 Python 的委托语法。`rag_stream_query` 是 `qa_core.pipeline.rag` 模块中 `stream_query` 函数的 import alias（`from qa_core.pipeline.rag import stream_query as rag_stream_query`），它是一个生成器函数，每次 `yield` 产生一个事件。`yield from` 把这些事件"透传"给调用方（FastAPI WebSocket 路由），所以 QAService 不需要自己维护生成循环。
+`yield from` 是 Python 的委托语法。`rag_stream_query` 是 `qa_core.pipeline.rag` 模块中 `stream_query` 函数的 import alias(`from qa_core.pipeline.rag import stream_query as rag_stream_query`)，它是一个生成器函数，每次 `yield` 产生一个事件。`yield from` 把这些事件"透传"给调用方(FastAPI WebSocket 路由)，所以 QAService 不需要自己维护生成循环。
 
-### 2.3 debug\_retrieval() — 检索诊断半链路
+### 3.3 debug\_retrieval() — 检索诊断半链路
 
 ```python
 def debug_retrieval(self, query, source_filter, session_id=None, ...):
@@ -129,7 +129,7 @@ def debug_retrieval(self, query, source_filter, session_id=None, ...):
 
 注意：`debug_retrieval()` 是**检索诊断半链路**，它故意从 `prepare_retrieval()` 开始，以便观察检索类意图、source 推断、按需改写、检索计划和召回质量；线上用户问答仍从 `stream_query()` 进入，并先执行 `decide_route()`。因此，调试接口没有走 `route=direct_answer / faq_exact / retrieval`，并不代表在线主链路跳过查询路由。
 
-### 2.4 source 白名单校验
+### 3.4 source 白名单校验
 
 ```python
 def validate_source(self, source_filter, scenario):
@@ -140,18 +140,18 @@ def validate_source(self, source_filter, scenario):
         )
 ```
 
-这个校验放在 QAService 层（而非 API 层或 retrieval 层）是经过考虑的：
-- **API 层**：不应该知道 Milvus 过滤规则（它只管 HTTP 参数校验）
-- **Retrieval 层**：不应该承担业务白名单判断（它只管执行检索）
-- **QAService（编排层）**：最清楚"前端筛选项 + 意图推断分类"如何进入主链路
+这个校验放在 QAService 层(而非 API 层或 retrieval 层)是经过考虑的：
+- **API 层**：不应该知道 Milvus 过滤规则(它只管 HTTP 参数校验)
+- **Retrieval 层**：不应该承担业务白名单判断(它只管执行检索)
+- **QAService(编排层)**：最清楚"前端筛选项 + 意图推断分类"如何进入主链路
 
 ---
 
-## 第三部分：Generator 模式在 RAG 中的应用
+## 4. Generator 模式在 RAG 中的应用
 
-### 3.1 什么是 Generator
+### 4.1 什么是 Generator
 
-Generator（生成器）是 Python 的一个核心特性，使用 `yield` 关键字：
+Generator(生成器)是 Python 的一个核心特性，使用 `yield` 关键字：
 
 ```text
 def simple_generator():
@@ -165,7 +165,7 @@ for event in simple_generator():
 
 Generator 的特点是**惰性求值**：每次只产生一个值，调用方可以在每个值之间做其他事情。
 
-### 3.2 为什么 RAG 适合用 Generator
+### 4.2 为什么 RAG 适合用 Generator
 
 RAG 的问答过程不是一个"输入→等待→输出"的单步操作，而是一个**多阶段持续产出**的过程：
 
@@ -183,7 +183,7 @@ def stream_query(...):
     yield {"type": "status", "message": "正在识别问题意图..."}
     prepared = prepare_retrieval(context)
 
-    # 兜底：处理直接答案（通常已在阶段 1 返回）
+    # 兜底：处理直接答案(通常已在阶段 1 返回)
     if prepared.intent.direct_answer:
         yield {"type": "token", "token": prepared.intent.direct_answer}
         yield {"type": "end", ...}
@@ -208,7 +208,7 @@ def stream_query(...):
 
 每个 `yield` 都是**一个可以立即推送给前端的事件**。用户不需要等全部流程跑完才能看到任何东西。
 
-### 3.3 前端接收到的体验
+### 4.3 前端接收到的体验
 
 ```json
 [0.0s] 用户点击发送 "入职流程有哪些步骤"
@@ -231,9 +231,9 @@ def stream_query(...):
 
 ---
 
-## 第四部分：应用工厂模式
+## 5. 应用工厂模式
 
-### 4.1 get\_qa\_service() 工厂函数
+### 5.1 get\_qa\_service() 工厂函数
 
 ```python
 # qa_core/application/factory.py
@@ -244,7 +244,7 @@ def get_qa_service() -> QAService:
     """返回进程级缓存的 QAService 实例。
 
     单例缓存确保了 settings 和 history store 在整个进程中只加载一次。
-    QAService 本身不保存请求级状态（所有变量都在方法局部作用域内），
+    QAService 本身不保存请求级状态(所有变量都在方法局部作用域内)，
     所以多用户并发是安全的。
     """
     return QAService()
@@ -256,10 +256,10 @@ def get_qa_service() -> QAService:
 - 每次请求创建新的 QAService 会重复加载配置，但没有好处
 
 **为什么不担心并发**：
-- QAService 只保存 `settings`（只读）和 `history`（线程安全适配器）
-- 请求级变量（query、intent、plan、sources 等）都不在 QAService 上，而在方法局部变量中
+- QAService 只保存 `settings`(只读)和 `history`(线程安全适配器)
+- 请求级变量(query、intent、plan、sources 等)都不在 QAService 上，而在方法局部变量中
 
-### 4.2 在 API 中使用
+### 5.2 在 API 中使用
 
 ```python
 # qa_core/api/chat.py
@@ -276,9 +276,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
 ---
 
-## 第五部分：错误处理与事件协议
+## 6. 错误处理与事件协议
 
-### 5.1 异常不抛给 WebSocket 路由
+### 6.1 异常不抛给 WebSocket 路由
 
 ```text
 # qa_core/pipeline/rag.py
@@ -296,7 +296,7 @@ except Exception as exc:
 
 **设计意图**：如果抛出异常到 WebSocket 路由，前端收到的就是一个 WebSocket 协议级别的错误，页面无法优雅地展示错误信息。以事件形式返回错误，前端可以按同一套 UI 渲染错误信息，并允许用户继续下一轮提问。
 
-### 5.2 事件类型汇总
+### 6.2 事件类型汇总
 
 | 事件类型 | 含义 | 前端处理 |
 | --- | --- | --- |
@@ -308,7 +308,7 @@ except Exception as exc:
 
 ---
 
-## 本讲实践闭环
+## 7. 本讲实践闭环
 
 | 项目 | 内容 |
 | --- | --- |
@@ -320,7 +320,7 @@ except Exception as exc:
 
 通过标准：在线问答只有 WebSocket 主入口；同一个业务服务能支撑流式回答和检索诊断，但不把 RAG 细节泄露给 API 层。
 
-### 本讲从 0 到 1 实现闭环
+### 7.1 本讲从 0 到 1 实现闭环
 
 这一讲的目标不是再写一个 RAG 算法，而是把前面已经具备的能力包装成一个稳定的应用服务层。实现时按这个顺序推进：
 
@@ -446,20 +446,20 @@ python scripts/api_e2e_smoke.py --base-url http://127.0.0.1:8001
 
 验收重点：API 层只负责协议和连接，业务编排集中在 service；service 再把请求交给 Pipeline，而不是把每个模块揉在路由函数里。
 
-## 重点掌握
+## 8. 重点掌握
 
 | 优先级 | 内容 | 原因 |
 | --- | --- | --- |
 | ★★★ 必会 | QAService 服务编排层的定位：协调意图识别、历史、检索、生成、存储，不直接处理 HTTP 或 Milvus 细节 | 理解"编排层"在分层架构中的角色，面试常问 |
-| ★★★ 必会 | 两个核心方法：stream\_query（唯一在线问答主干链路，yield from 透传事件）、debug\_retrieval（只查不生成） | QAService 对外的完整接口 |
-| ★★★ 必会 | Generator（生成器）模式在流式问答中的应用：惰性求值，每个 yield 产生一个可立即推送给前端的事件 | 理解 RAG 流式体验的技术实现 |
+| ★★★ 必会 | 两个核心方法：stream\_query(唯一在线问答主干链路，yield from 透传事件)、debug\_retrieval(只查不生成) | QAService 对外的完整接口 |
+| ★★★ 必会 | Generator(生成器)模式在流式问答中的应用：惰性求值，每个 yield 产生一个可立即推送给前端的事件 | 理解 RAG 流式体验的技术实现 |
 | ★★ 理解 | 直答分流放在 Pipeline 主链路中：问候、越界、转人工也通过 WebSocket 事件返回 | 避免多套在线入口导致口径和状态不一致 |
 | ★★ 理解 | 单例工厂 get\_qa\_service() + @lru\_cache：只缓存 settings 和 history，请求级状态在局部变量中 | 并发安全的保证 |
-| ★★ 理解 | 错误以事件（error 类型）形式返回给前端，不抛异常到 WebSocket 路由 | 用户体验和安全设计 |
+| ★★ 理解 | 错误以事件(error 类型)形式返回给前端，不抛异常到 WebSocket 路由 | 用户体验和安全设计 |
 | ★ 了解 | source 白名单校验放在 QAService 层的理由 | 理解分层职责的划分依据 |
 | ★ 了解 | 事件类型汇总：start / status / token / end / error | 回顾第 11 讲的 WebSocket 事件协议 |
 
-## 本讲小结
+## 9. 本讲小结
 
 - **QAService 是服务编排层**，协调意图、历史、检索、生成、存储，但不直接处理 HTTP 或 Milvus 细节
 - **stream\_query** 是唯一在线问答主干链路，通过 Generator 持续产出事件

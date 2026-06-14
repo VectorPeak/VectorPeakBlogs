@@ -9,7 +9,7 @@ icon: "diagram-project"
 <Badge icon="clock" color="green">Written: 2026.06</Badge>
 本页整理业务流程动画中的 Mermaid 流程图。
 
-## 在线提问流程
+## 1. 在线提问流程
 
 ```mermaid
 flowchart TD
@@ -86,7 +86,7 @@ flowchart TD
     style MYSQL fill:#1a2e05,stroke:#84cc16
 ```
 
-## 离线建库流程
+## 2. 离线建库流程
 
 ```mermaid
 flowchart TD
@@ -156,7 +156,7 @@ flowchart TD
     style FAQIN fill:#134e4a,stroke:#2dd4bf
 ```
 
-## 系统总览流程
+## 3. 系统总览流程
 
 ```mermaid
 flowchart TB
@@ -167,7 +167,7 @@ flowchart TB
         APP --> PREFLIGHT --> WARM
     end
 
-    subgraph ONLINE["🟢 在线问答（实时）"]
+    subgraph ONLINE["🟢 在线问答(实时)"]
         direction TB
         B["浏览器"]
         API2["FastAPI<br/>HTTP + WebSocket"]
@@ -176,7 +176,7 @@ flowchart TB
         B -->|"提问"| API2 --> QASVC --> PIPE -->|"流式答案"| B
     end
 
-    subgraph OFFLINE["🔵 离线入库（异步）"]
+    subgraph OFFLINE["🔵 离线入库(异步)"]
         direction TB
         DOC["文档上传"]
         INGEST["入库管线<br/>加载→标准化→切分→向量化→存储"]
@@ -190,7 +190,7 @@ flowchart TB
         MINIO[("MinIO<br/>向量索引文件<br/>binlog")]
     end
 
-    subgraph MODELS["🧠 模型层（本地部署）"]
+    subgraph MODELS["🧠 模型层(本地部署)"]
         BGE3["BGE-M3<br/>Embedding<br/>1024维"]
         RERANKER["BGE Reranker<br/>CrossEncoder<br/>精排"]
     end
@@ -216,7 +216,7 @@ flowchart TB
     style LLM2 fill:#500724,stroke:#ec4899,stroke-width:2px
 ```
 
-## 代码跟练流程
+## 4. 代码跟练流程
 
 ```mermaid
 flowchart LR

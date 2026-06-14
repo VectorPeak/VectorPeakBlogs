@@ -1,7 +1,7 @@
 ---
 title: "RAG Pipeline 主链路"
 description: "完整梳理 RAG Pipeline 从提问到生成的核心执行流程"
-icon: "pipeline"
+icon: "route"
 ---
 
 # RAG Pipeline 主链路
@@ -12,9 +12,9 @@ icon: "pipeline"
 **上一讲**：[QAService 核心编排](/RAG/pipeline/qaservice-orchestration)  
 **下一讲**：[Prompt 工程与 Profile 系统](/RAG/pipeline/prompt-engineering)
 
-## 本讲目标
+## 1. 本讲目标
 
-- 理解 RAG Pipeline 的 8 个 Stage（0-7）事件生成模型
+- 理解 RAG Pipeline 的 8 个 Stage(0-7)事件生成模型
 - 掌握 FAQ 快速路径和 FAQ 标准直出的区别
 - 理解上下文构建中的筛选、去重、截断策略
 - 理解答案引用增强的实现
@@ -25,46 +25,46 @@ icon: "pipeline"
 
 ---
 
-## 第一部分：前置知识 — Pipeline 设计模式
+## 2. 前置知识 — Pipeline 设计模式
 
-### 1.1 Pipeline vs Chain
+### 2.1 Pipeline vs Chain
 
-**Chain（链）**：固定的步骤序列，A → B → C → D，没有分支。
+**Chain(链)**：固定的步骤序列，A → B → C → D，没有分支。
 
-**Pipeline（管道）**：有分支、有快慢路径的流程。每一步可以提前结束（如 FAQ 命中时跳过文档检索），也可以根据上一步的结果调整下一步的参数。
+**Pipeline(管道)**：有分支、有快慢路径的流程。每一步可以提前结束(如 FAQ 命中时跳过文档检索)，也可以根据上一步的结果调整下一步的参数。
 
 本项目的 RAG 流程是 Pipeline 而非 Chain：
 
 ```text
 用户问题
-  → 查询路由（direct_answer / faq_exact / retrieval）
-  → 检索准备（历史 / 意图 / source / 按需改写 / 计划 / 变体）
-  → FAQ 检索（高置信标准直出可结束）
+  → 查询路由(direct_answer / faq_exact / retrieval)
+  → 检索准备(历史 / 意图 / source / 按需改写 / 计划 / 变体)
+  → FAQ 检索(高置信标准直出可结束)
   → 文档检索 → 上下文构建 → LLM 生成
 ```
 
-### 1.2 Pipeline 的模块化拆分
+### 2.2 Pipeline 的模块化拆分
 
 项目将 Pipeline 拆分为多个职责单一的文件：
 
 ```text
 qa_core/pipeline/
-├── rag.py          # 主流程编排（stream_query, debug_retrieval）
-├── runtime.py      # 请求上下文（RAGQueryContext）和事件工具函数
+├── rag.py          # 主流程编排(stream_query, debug_retrieval)
+├── runtime.py      # 请求上下文(RAGQueryContext)和事件工具函数
 ├── steps.py        # 查询路由、检索准备、Prompt 准备
 ├── retrieval_steps.py  # FAQ / 文档检索执行
-├── context.py      # 上下文构建（筛选、去重、格式化）
+├── context.py      # 上下文构建(筛选、去重、格式化)
 ├── rewrite.py      # 查询改写
 ├── query_variants.py  # 查询变体生成
-├── events.py       # 事件构造（start/status/token/end/error）
+├── events.py       # 事件构造(start/status/token/end/error)
 └── citations.py    # 答案引用增强
 ```
 
 ---
 
-## 第二部分：8 个 Stage 主流程
+## 3. 8 个 Stage 主流程
 
-### Stage 0-7 可视化总览
+### 3.1 Stage 0-7 可视化总览
 
 ```mermaid
 flowchart TD
@@ -103,7 +103,7 @@ flowchart TD
     style Final fill:#ECFDF5,stroke:#059669,stroke-width:3px
 ```
 
-### 2.1 完整流程代码（简化）
+### 3.2 完整流程代码(简化)
 
 ```python
 # qa_core/pipeline/rag.py
@@ -125,7 +125,7 @@ def stream_query(history, validate_source, query, source_filter,
         yield build_status_event("正在识别问题意图...", context.session_id)
         prepared = prepare_retrieval(context)
 
-        # === 兜底：非 RAG 类回答（通常已在 Stage 1 返回）===
+        # === 兜底：非 RAG 类回答(通常已在 Stage 1 返回)===
         if prepared.intent.direct_answer:
             yield from _finish_with_single_answer(context, history, query, prepared.intent.direct_answer)
             return
@@ -133,7 +133,7 @@ def stream_query(history, validate_source, query, source_filter,
         # === Stage 3-6: FAQ 检索 → 文档检索 → 上下文构建 → LLM 生成 ===
         helper_result = yield from _search_and_generate(context, prepared, query, history)
         if helper_result is None:
-            return  # 已在内部收尾（FAQ 直出或信息不足）
+            return  # 已在内部收尾(FAQ 直出或信息不足)
 
         # === 引用补强 ===
         answer = enforce_answer_citations(context.answer, helper_result.context_docs)
@@ -183,7 +183,7 @@ def _search_and_generate(context, prepared, query, history):
     return answer_prepared
 ```
 
-### 2.2 Stage 1：查询路由
+### 3.3 Stage 1：查询路由
 
 这是在线问答进入检索准备之前的低成本路由层。它统一处理三类结果：
 
@@ -229,7 +229,7 @@ def decide_route(context):
 
 这也是你截图里最应该调整的地方：`你好`、`转人工`、`彩票怎么买` 这类问题不应该先进入 FAQ 快速路径，而应该在这一阶段直接收口。
 
-### 2.3 FAQ 精确命中为什么放在路由层
+### 3.4 FAQ 精确命中为什么放在路由层
 
 FAQ 精确命中依赖知识库内容、版本、tenant、source\_filter 和标准问题文本，它不是“用户意图类型”。所以更准确的表达是：查询路由层可以产出 `route=faq_exact`，并把 `intent` 标记为 `FAQ_QUERY`。
 
@@ -273,7 +273,7 @@ def try_fast_faq_direct_answer(context):
     return answer, intent  # 不是精确匹配就返回 (None, FAQ_QUERY intent)，继续主流程
 ```
 
-### \_exact\_faq\_answer() — 精确匹配实现
+### 3.5 \_exact\_faq\_answer() — 精确匹配实现
 
 ```python
 def _exact_faq_answer(query: str, faq_result: RetrievalResult) -> tuple[str | None, RetrievalResult]:
@@ -300,36 +300,36 @@ def _exact_faq_answer(query: str, faq_result: RetrievalResult) -> tuple[str | No
 
 **为什么在检索准备之前做**：
 - 减少首 token 延迟。标准 FAQ 的精确命中不需要经过历史加载、检索类意图识别、改写、检索计划等步骤。
-- FAQ 快速路径仍然访问 Milvus（带版本和数据隔离过滤），不是本地缓存。
+- FAQ 快速路径仍然访问 Milvus(带版本和数据隔离过滤)，不是本地缓存。
 - 它在同一个 `decide_route()` 中排在 direct\_answer 之后，避免问候、转人工、越界问题先触发知识库查询。
 
 **为什么只允许精确匹配**：
 - 还没做意图识别，不知道这是 FAQ\_QUERY 还是 KNOWLEDGE\_QUERY
 - 如果是知识咨询但 FAQ 相似分数高，可能误答。所以只允许用户问题和 FAQ 标准问题完全一致时才直出。
 
-### 2.4 FAQ 标准直出 vs FAQ 精确路由
+### 3.6 FAQ 标准直出 vs FAQ 精确路由
 
 这是两个容易混淆的概念：
 
-|  | FAQ 精确路由（Stage 1） | FAQ 标准直出（Stage 3） |
+|  | FAQ 精确路由(Stage 1) | FAQ 标准直出(Stage 3) |
 | --- | --- | --- |
 | 时机 | `decide_route()` 中，检索准备之前 | 检索准备之后 |
 | route / intent | `route=faq_exact`，`intent=FAQ_QUERY` | `route=retrieval` 后识别出 `intent=FAQ_QUERY` |
 | 匹配方式 | 仅精确匹配 | 精确匹配 + 相似分数阈值 |
-| 阈值 | ∞（只精确） | 动态（0.62~0.86） |
+| 阈值 | ∞(只精确) | 动态(0.62~0.86) |
 | 适用 | 短标准问答 | 已确认 FAQ\_QUERY 意图 |
-| 风险 | 低（只精确） | 中（相似分数可能误命中） |
+| 风险 | 低(只精确) | 中(相似分数可能误命中) |
 
 ---
 
-## 第三部分：上下文构建
+## 4. 上下文构建
 
-### 3.1 select\_context\_docs() 的筛选策略
+### 4.1 select\_context\_docs() 的筛选策略
 
 ```python
 # qa_core/pipeline/context.py
 def select_context_docs(faq_hits: list, doc_hits: list, plan: RetrievalPlan) -> list[Document]:
-    """筛选进入 Prompt 的文档片段（只依赖 plan 对象，不需要 scenario 参数）。
+    """筛选进入 Prompt 的文档片段(只依赖 plan 对象，不需要 scenario 参数)。
 
     执行流程：
     1. FAQ 命中：过滤分数 → 取前 2 条 → 转成"常见问题 + 标准答案"格式
@@ -353,7 +353,7 @@ def select_context_docs(faq_hits: list, doc_hits: list, plan: RetrievalPlan) -> 
     # ── 文档部分：过滤分数 → prefer_table 排序 → 优先用 parent_content ──
     eligible = [h for h in doc_hits if h.score >= plan.min_context_score]
     if plan.prefer_table:
-        # 表格行（content_type 以 table 开头）排到普通正文前面
+        # 表格行(content_type 以 table 开头)排到普通正文前面
         eligible = sorted(eligible,
             key=lambda h: (0 if is_table_document(h.document) else 1, -h.score))
 
@@ -367,11 +367,11 @@ def select_context_docs(faq_hits: list, doc_hits: list, plan: RetrievalPlan) -> 
     return selected
 ```
 
-### 3.2 build\_context() 的格式化输出
+### 4.2 build\_context() 的格式化输出
 
 ```python
 def build_context(docs: list[Document]) -> str:
-    """构建最终上下文文本（只依赖 doc.metadata，不依赖 scenario 对象）。"""
+    """构建最终上下文文本(只依赖 doc.metadata，不依赖 scenario 对象)。"""
     lines = []
     seen: set[str] = set()
     for i, doc in enumerate(docs):
@@ -392,7 +392,7 @@ def build_context(docs: list[Document]) -> str:
 
 ```text
 [1] 来源：人事制度 / 入职管理
-入职流程包括以下步骤：1. 提交入职材料（身份证复印件、学历证书...）
+入职流程包括以下步骤：1. 提交入职材料(身份证复印件、学历证书...)
 
 [2] 来源：人事制度 / 审批权限
 部门经理负责审批本部门员工的入职申请，审批时限为 3 个工作日...
@@ -403,9 +403,9 @@ def build_context(docs: list[Document]) -> str:
 
 ---
 
-## 第四部分：信息不足处理
+## 5. 信息不足处理
 
-### 4.1 什么情况判定为信息不足
+### 5.1 什么情况判定为信息不足
 
 `prepare_answer` 在 `steps.py` 中定义，其内部的信息不足判定委托给 `_build_answer_context`：
 
@@ -462,7 +462,7 @@ def _build_answer_context(prepared, faq_result, doc_result):
     return context_docs, sources, "rag" if context_docs else "insufficient_context", top_score
 ```
 
-### 4.2 信息不足的答案
+### 5.2 信息不足的答案
 
 ```python
 def build_insufficient_context_answer(context: RAGQueryContext) -> str:
@@ -471,13 +471,13 @@ def build_insufficient_context_answer(context: RAGQueryContext) -> str:
     return f"信息不足，无法确认。当前知识库没有召回到足够可靠的依据，请联系{context.scenario.support_contact}。"
 ```
 
-**设计意图**：信息不足时，系统**明确告知用户**（而不是让 LLM 即兴发挥），避免 LLM 在没有可靠资料的情况下生成"幻觉"答案。
+**设计意图**：信息不足时，系统**明确告知用户**(而不是让 LLM 即兴发挥)，避免 LLM 在没有可靠资料的情况下生成"幻觉"答案。
 
 ---
 
-## 第五部分：答案引用增强
+## 6. 答案引用增强
 
-### 5.1 什么是引用增强
+### 6.1 什么是引用增强
 
 LLM 生成的答案可能引用上下文中的信息，但不会自动标注"这个信息来自哪个文档"。引用增强在 LLM 生成完答案后，检查答案是否提到了上下文中的关键信息，如果提到了就补充来源标注。
 
@@ -492,7 +492,7 @@ def has_source_citation(answer: str) -> bool:
     return bool(CITATION_RE.search(answer or ""))
 
 def source_reference_label(doc: Document, index: int) -> str:
-    """生成简短来源标签（文件名/FAQ 标准问题；表格资料附加 sheet 和行号）。"""
+    """生成简短来源标签(文件名/FAQ 标准问题；表格资料附加 sheet 和行号)。"""
     from qa_core.document_metadata import format_source_label
     return f"[&#123;index&#125;] &#123;format_source_label(dict(doc.metadata or &#123;&#125;))&#125;"
 
@@ -514,7 +514,7 @@ def enforce_table_row_details(answer: str, context_docs: list[Document]) -> str:
 def enforce_answer_citations(answer: str, context_docs: list[Document]) -> str:
     """确保 RAG 答案带有可见来源编号：模型已写则保留，未写则末尾补充前 3 个来源。
 
-    额外检查表格类答案：模型遗漏核心单元格值（状态/金额/责任人等）时
+    额外检查表格类答案：模型遗漏核心单元格值(状态/金额/责任人等)时
     确定性追加表格行要点，避免 LLM 忽略关键数据。
     """
     clean_answer = (answer or "").strip()
@@ -527,7 +527,7 @@ def enforce_answer_citations(answer: str, context_docs: list[Document]) -> str:
     if has_source_citation(clean_answer):
         return clean_answer
 
-    # 为前 3 个上下文文档生成来源标签（文件名/FAQ 问题名/表格 sheet 和行号）
+    # 为前 3 个上下文文档生成来源标签(文件名/FAQ 问题名/表格 sheet 和行号)
     references = "；".join(
         source_reference_label(doc, index)
         for index, doc in enumerate(context_docs[:3], start=1)
@@ -544,10 +544,10 @@ def enforce_answer_citations(answer: str, context_docs: list[Document]) -> str:
 ```python
 # qa_core/pipeline/runtime.py
 class RAGQueryContext:
-    """RAG 请求的运行时状态（dataclass，字段名与讲义一致）。"""
-    started: float           # 请求开始时间戳（time.perf_counter()）
+    """RAG 请求的运行时状态(dataclass，字段名与讲义一致)。"""
+    started: float           # 请求开始时间戳(time.perf_counter())
     stage_timings_ms: dict[str, float] = &#123;&#125;  # 各阶段耗时字典
-    first_token_ms: float | None = None      # 首 token 到达时间（毫秒）
+    first_token_ms: float | None = None      # 首 token 到达时间(毫秒)
 
     @contextmanager
     def stage(self, name: str):
@@ -565,7 +565,7 @@ class RAGQueryContext:
         return elapsed_ms
 
     def mark_first_token(self):
-        """记录首 token 时间（从请求 started 到首次推送 token 的毫秒数）。"""
+        """记录首 token 时间(从请求 started 到首次推送 token 的毫秒数)。"""
         if self.first_token_ms is None:
             self.first_token_ms = round((time.perf_counter() - self.started) * 1000, 2)
 ```
@@ -733,7 +733,7 @@ sequenceDiagram
 ### 7.4 前端如何消费事件
 
 ```js
-// static/js/chat.js（简化逻辑）
+// static/js/chat.js(简化逻辑)
 
 const ws = new WebSocket(`ws://$&#123;location.host&#125;/api/stream`);
 
@@ -771,7 +771,7 @@ ws.onmessage = (event) => &#123;
 
 ### 7.5 后端如何推进生成器
 
-关键问题：`QAService.stream_query()` 是**同步生成器**（它内部顺序执行意图识别、Milvus 检索、本地 rerank 和 LLM 流式调用），但 WebSocket 路由是**异步函数**。如果直接调用 `next(iterator)`，事件循环会被阻塞。
+关键问题：`QAService.stream_query()` 是**同步生成器**(它内部顺序执行意图识别、Milvus 检索、本地 rerank 和 LLM 流式调用)，但 WebSocket 路由是**异步函数**。如果直接调用 `next(iterator)`，事件循环会被阻塞。
 
 解决方案：`asyncio.to_thread` 将同步生成器的推进放到独立线程：
 
@@ -788,14 +788,14 @@ while True:
 
     if event.get("type") in &#123;"end", "error"&#125;:
         if event.get("type") == "end":
-            # 后台异步刷新历史摘要（不阻塞用户看到结果）
+            # 后台异步刷新历史摘要(不阻塞用户看到结果)
             _schedule_summary_refresh(session_id)
         break
 ```
 
 ```mermaid
 flowchart TD
-    subgraph MainThread["主线程（事件循环）"]
+    subgraph MainThread["主线程(事件循环)"]
         WS["WebSocket 接收消息"]
         Send["发送事件到浏览器"]
         Schedule["调度后台摘要刷新"]
@@ -820,20 +820,20 @@ flowchart TD
 
 **为什么需要两个线程？** 这是一个 Python 异步编程中很经典的"同步生成器 + 异步 WebSocket"阻抗匹配问题。
 
-`QAService.stream_query()` 是一个**同步生成器**——它内部顺序执行意图识别、Milvus 检索（gRPC 阻塞调用）、本地 Rerank（CPU 密集计算）、LLM 流式调用（HTTP 阻塞读取）。如果把这段逻辑直接放在主线程的事件循环中调用 `next(iterator)`，整个事件循环会在每次推进生成器时被阻塞，导致其他 WebSocket 连接、HTTP 请求全部卡住。
+`QAService.stream_query()` 是一个**同步生成器**——它内部顺序执行意图识别、Milvus 检索(gRPC 阻塞调用)、本地 Rerank(CPU 密集计算)、LLM 流式调用(HTTP 阻塞读取)。如果把这段逻辑直接放在主线程的事件循环中调用 `next(iterator)`，整个事件循环会在每次推进生成器时被阻塞，导致其他 WebSocket 连接、HTTP 请求全部卡住。
 
 **解决方案：`asyncio.to_thread` 作为桥梁。** 主线程通过 `asyncio.to_thread` 把同步生成器的推进操作丢给线程池中的工作线程，自己立即返回并继续处理事件循环中的其他任务。工作线程推进完成后，结果通过 Future 传回主线程，主线程再 `await websocket.send_json(event)` 发给浏览器。
 
 图中两条线程的分工：
 
-| 职责 | 主线程（事件循环） | 工作线程 |
+| 职责 | 主线程(事件循环) | 工作线程 |
 | --- | --- | --- |
 | WebSocket 收发 | ✅ 接收用户消息、发送事件 | ❌ |
 | 意图识别 | ❌ | ✅ 同步调用 |
 | Milvus 检索 | ❌ | ✅ gRPC 阻塞调用 |
 | 本地 Rerank | ❌ | ✅ CPU 密集计算 |
 | LLM 流式调用 | ❌ | ✅ HTTP 阻塞读取 |
-| 后台摘要刷新 | ✅ 调度（不阻塞响应） | ❌ |
+| 后台摘要刷新 | ✅ 调度(不阻塞响应) | ❌ |
 
 **事件如何跨线程**：工作线程每产出一个 token 或状态事件，生成器 yield 一次；主线程的 `_next_stream_event(stream)` 捕获这个值并通过 `asyncio.to_thread` 的返回值传回；主线程拿到事件后立即 `send_json` 给浏览器。这个过程对用户透明——浏览器看到的是连续的 `status → token... → end` 事件流。
 
@@ -844,7 +844,7 @@ flowchart TD
 1. **类型安全**：每个事件都有 `type` 字段，前端用 `switch` 分派处理，不靠字段存在与否判断
 2. **诊断信息附带**：`end` 事件携带完整的 retrieval 诊断信息，前端可以用 JS 渲染到页面上，帮助用户理解"系统为什么这样回答"
 3. **错误不崩溃**：异常转为 `error` 事件，不抛到 WebSocket 路由。用户看到错误提示后可以继续下一轮提问
-4. **历史写入在最后**：`end` 事件之后才写 MySQL 历史，确保历史记录的是完整答案（含引用增强后的来源）
+4. **历史写入在最后**：`end` 事件之后才写 MySQL 历史，确保历史记录的是完整答案(含引用增强后的来源)
 
 ---
 
@@ -1052,11 +1052,11 @@ python scripts/api_e2e_smoke.py
 | --- | --- | --- |
 | ★★★ 必会 | Stage 0-7 主流程：创建上下文 → 查询路由 → 检索准备 → FAQ 检索 → 文档检索 → 上下文构建 → LLM 流式生成/引用增强 → 保存历史 | RAG Pipeline 的完整骨架 |
 | ★★★ 必会 | `route=faq_exact` vs `intent=FAQ_QUERY` vs FAQ 标准直出的区别 | route 是系统处理方式，intent 是用户意图，二者不要混淆 |
-| ★★★ 必会 | 上下文构建（select\_context\_docs）的筛选策略：FAQ 前 2 条 → 分数过滤 → 去重 → 表格行优先 → 三重预算约束（条数/单条长度/总长度） | 决定 LLM 看到的上下文质量 |
-| ★★★ 必会 | 流式事件协议的五种事件类型（start/status/token/end/error）及前后端协作方式 | 理解浏览器如何实时展示 RAG 进度 |
-| ★★ 理解 | 信息不足（insufficient\_context）时明确告知用户，不让 LLM 即兴发挥 | 避免幻觉的重要安全机制 |
-| ★★ 理解 | 引用增强（enforce\_answer\_citations）：LLM 答案已有 [N] 则不重复，否则末尾补充前 3 个来源 | 保证答案可溯源 |
-| ★★ 理解 | 阶段计时（RAGQueryContext.stage）追踪每个阶段耗时 | 性能优化的数据基础 |
+| ★★★ 必会 | 上下文构建(select\_context\_docs)的筛选策略：FAQ 前 2 条 → 分数过滤 → 去重 → 表格行优先 → 三重预算约束(条数/单条长度/总长度) | 决定 LLM 看到的上下文质量 |
+| ★★★ 必会 | 流式事件协议的五种事件类型(start/status/token/end/error)及前后端协作方式 | 理解浏览器如何实时展示 RAG 进度 |
+| ★★ 理解 | 信息不足(insufficient\_context)时明确告知用户，不让 LLM 即兴发挥 | 避免幻觉的重要安全机制 |
+| ★★ 理解 | 引用增强(enforce\_answer\_citations)：LLM 答案已有 [N] 则不重复，否则末尾补充前 3 个来源 | 保证答案可溯源 |
+| ★★ 理解 | 阶段计时(RAGQueryContext.stage)追踪每个阶段耗时 | 性能优化的数据基础 |
 | ★★ 理解 | asyncio.to\_thread 桥接同步 Generator 和异步 WebSocket | Python 异步编程的关键模式 |
 | ★ 了解 | Pipeline 的模块化拆分：rag.py / runtime.py / steps.py / retrieval\_steps.py / context.py / events.py / citations.py | 了解文件职责划分 |
 

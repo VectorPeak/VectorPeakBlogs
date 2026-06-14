@@ -1,7 +1,7 @@
 ---
 title: "知识库版本管理"
 description: "整理知识库多版本管理、灰度切换和版本隔离策略"
-icon: "layers"
+icon: "database"
 ---
 
 # 知识库版本管理
@@ -12,37 +12,37 @@ icon: "layers"
 **上一讲**：[应用入口与环境前置校验](/RAG/pipeline/app-entry-preflight)  
 **下一讲**：[数据隔离与多租户设计](/RAG/production/data-isolation)
 
-## 本讲目标
+## 1. 本讲目标
 
 - 理解为什么 RAG 系统需要知识库版本管理
-- 掌握版本状态机的设计（STAGED → ACTIVE → ARCHIVED）
-- 理解版本切换的实现（O(1) 操作，不批量更新 Milvus）
-- 理解版本号生成的设计（时间戳 + 配置哈希）
+- 掌握版本状态机的设计(STAGED → ACTIVE → ARCHIVED)
+- 理解版本切换的实现(O(1) 操作，不批量更新 Milvus)
+- 理解版本号生成的设计(时间戳 + 配置哈希)
 
 ---
 
-## 第一部分：前置知识 — 为什么 RAG 需要版本管理
+## 2. 前置知识 — 为什么 RAG 需要版本管理
 
-### 1.1 不加版本管理的风险
+### 2.1 不加版本管理的风险
 
 假设你用一个脚本把 500 个业务文档写入 Milvus。运行完毕后：
 
 ```text
 场景 A：一切正常，问答效果好
 
-场景 B：你发现新的 Embedding 模型（bge-m3-v2）效果更好，想切换
+场景 B：你发现新的 Embedding 模型(bge-m3-v2)效果更好，想切换
   → 重新入库，覆盖了旧的向量数据
-  → 新模型效果反而更差（新的切分策略导致 chunk 太碎）
+  → 新模型效果反而更差(新的切分策略导致 chunk 太碎)
   → 无法回滚，因为旧数据已经被覆盖了
 
-场景 C：你修改了文档切分参数（chunk_size 从 500 改为 300）
+场景 C：你修改了文档切分参数(chunk_size 从 500 改为 300)
   → 想对比新旧切分方案的效果
   → 没有版本机制，你只能删除旧数据重建，对比无从谈起
 ```
 
 **版本管理的核心价值**：让知识库的更新成为**可逆操作**。
 
-### 1.2 版本管理的典型需求
+### 2.2 版本管理的典型需求
 
 | 需求 | 说明 |
 | --- | --- |
@@ -54,9 +54,9 @@ icon: "layers"
 
 ---
 
-## 第二部分：版本状态机
+## 3. 版本状态机
 
-### 2.1 三种状态
+### 3.1 三种状态
 
 ```text
 stateDiagram-v2
@@ -83,7 +83,7 @@ stateDiagram-v2
     end note
 ```
 
-### 安全入库与激活流程
+### 3.2 安全入库与激活流程
 
 ```mermaid
 flowchart TD
@@ -112,9 +112,9 @@ flowchart TD
 - **ACTIVE**：当前在线检索使用的版本。同一场景只有一个 ACTIVE 版本。
 - **ARCHIVED**：不再使用的历史版本。数据和 Milvus chunk 都保留，但不参与在线检索。
 
-### 2.2 状态转换实现
+### 3.3 状态转换实现
 
-下面的代码展示的是步骤 5（激活）和归档操作。步骤 1（创建版本）见 `ensure_version()`，步骤 2（入库写入）见第 16 讲，步骤 3-4（质量报告和门控）见第 17 讲。
+下面的代码展示的是步骤 5(激活)和归档操作。步骤 1(创建版本)见 `ensure_version()`，步骤 2(入库写入)见第 16 讲，步骤 3-4(质量报告和门控)见第 17 讲。
 
 ```python
 # qa_core/governance/kb_versions.py
@@ -164,7 +164,7 @@ def archive_version(self, kb_version: str) -> KnowledgeBaseVersion:
     return record
 ```
 
-### 2.3 激活操作的轻量性
+### 3.4 激活操作的轻量性
 
 **关键设计**：激活版本只修改一个 JSON 文件，不碰 Milvus。
 
@@ -181,9 +181,9 @@ def archive_version(self, kb_version: str) -> KnowledgeBaseVersion:
 
 ---
 
-## 第三部分：版本号设计
+## 4. 版本号设计
 
-### 3.1 版本号生成
+### 4.1 版本号生成
 
 ```python
 def generate_kb_version(prefix="kb", scenario_id=None) -> str:
@@ -197,7 +197,7 @@ def generate_kb_version(prefix="kb", scenario_id=None) -> str:
     settings = get_settings()
     scenario = _resolve_version_scenario(scenario_id)  # 私有 helper，避免 settings -> scenarios -> kb_versions 循环导入
 
-    stamp = utc_file_stamp()  # 如 20260506_103000（年月日_时分秒）
+    stamp = utc_file_stamp()  # 如 20260506_103000(年月日_时分秒)
     config_hash = stable_hash(
         scenario.scenario_id,
         settings.embedding_model_version,    # 如 "bge-m3-local-v1"
@@ -211,7 +211,7 @@ def generate_kb_version(prefix="kb", scenario_id=None) -> str:
     # 例：kb_enterprise_knowledge_20260506_103000_9f2a1b3c
 ```
 
-### 3.2 为什么版本号包含配置哈希
+### 4.2 为什么版本号包含配置哈希
 
 设计意图：从版本号可以直接判断两个版本是否使用同一套配置。
 
@@ -221,14 +221,14 @@ kb_enterprise_knowledge_20260507_150000_7d3e8f1a
                            不同日期 ↑         不同 hash ↑
 ```
 
-如果两个版本的 hash 相同但日期不同，说明是同一套配置下的数据更新（新增/修改了文档）。
+如果两个版本的 hash 相同但日期不同，说明是同一套配置下的数据更新(新增/修改了文档)。
 如果 hash 不同，说明 Embedding 模型、Reranker 模型或 Chunk 方案有变化，需要重点关注召回质量的对比。
 
 ---
 
-## 第四部分：版本清单文件
+## 5. 版本清单文件
 
-### 4.1 文件结构
+### 5.1 文件结构
 
 ```json
 {
@@ -262,7 +262,7 @@ kb_enterprise_knowledge_20260507_150000_7d3e8f1a
 }
 ```
 
-### 4.2 KnowledgeBaseVersionStore 类
+### 5.2 KnowledgeBaseVersionStore 类
 
 ```python
 class KnowledgeBaseVersionStore(JsonFileStore):
@@ -283,7 +283,7 @@ class KnowledgeBaseVersionStore(JsonFileStore):
         """解析一次检索应该使用的知识库版本。
 
         优先级：
-        1. 请求显式传入的 kb_version（用于评测/灰度）
+        1. 请求显式传入的 kb_version(用于评测/灰度)
         2. 环境变量 ACTIVE_KB_VERSION
         3. 版本清单中的 active_version
 
@@ -308,9 +308,9 @@ class KnowledgeBaseVersionStore(JsonFileStore):
 
 ---
 
-## 第五部分：与 Milvus 检索的集成
+## 6. 与 Milvus 检索的集成
 
-### 5.1 写入时携带版本信息
+### 6.1 写入时携带版本信息
 
 ```python
 # qa_core/governance/kb_versions.py
@@ -342,7 +342,7 @@ chunk = Document(
 )
 ```
 
-### 5.2 检索时过滤版本
+### 6.2 检索时过滤版本
 
 ```text
 # 在线检索
@@ -356,7 +356,7 @@ expr = f'kb_version == "{active_version}" and source == "hr" and ...'
 results = milvus_store.similarity_search(query, expr=expr)
 ```
 
-### 5.3 评测用历史版本
+### 6.3 评测用历史版本
 
 ```text
 # 评测脚本可以显式指定历史版本
@@ -375,7 +375,7 @@ for question in eval_set:
 
 ---
 
-## 第六部分：全量重建的安全流程
+## 7. 全量重建的安全流程
 
 ```text
 python scripts/rebuild_kb_version.py --scenario enterprise_knowledge --new-version --force --quality-gate --activate
@@ -384,20 +384,20 @@ python scripts/rebuild_kb_version.py --scenario enterprise_knowledge --new-versi
 执行顺序：
 
 ```text
-1. 创建 STAGED 版本（version = "kb_...20260507_150000_xxxx"）
-2. FAQ 入库（写入 STAGED 版本的 kb_version）
-3. 文档入库（写入 STAGED 版本的 kb_version）
+1. 创建 STAGED 版本(version = "kb_...20260507_150000_xxxx")
+2. FAQ 入库(写入 STAGED 版本的 kb_version)
+3. 文档入库(写入 STAGED 版本的 kb_version)
 4. 生成入库质量报告
 5. 执行入库质量检查
-   ├─ 通过 → 激活版本（将 STAGED 切换为 ACTIVE）
-   └─ 不通过 → 终止流程，STAGED 版本仍保留（不激活）
+   ├─ 通过 → 激活版本(将 STAGED 切换为 ACTIVE)
+   └─ 不通过 → 终止流程，STAGED 版本仍保留(不激活)
 ```
 
 **关键安全点**：即使新的 STAGED 版本已经写入了 Milvus，只要没有执行激活步骤，线上检索仍然使用旧的 ACTIVE 版本。用户完全无感知。
 
 ---
 
-## 本讲实践闭环
+## 8. 本讲实践闭环
 
 | 项目 | 内容 |
 | --- | --- |
@@ -409,7 +409,7 @@ python scripts/rebuild_kb_version.py --scenario enterprise_knowledge --new-versi
 
 通过标准：任意时刻每个场景只有一个 active 版本，版本可追踪、可回滚。
 
-### 本讲从 0 到 1 实现闭环
+### 8.1 本讲从 0 到 1 实现闭环
 
 这一讲的核心是把“重建知识库”变成可追踪、可回滚的发布动作。实现顺序如下：
 
@@ -523,11 +523,11 @@ docker compose --env-file .env.compose run --rm api python scripts/rebuild_kb_ve
 
 验收重点：知识库更新必须可追踪、可回滚，不能直接覆盖线上数据。
 
-## 重点掌握
+## 9. 重点掌握
 
 | 优先级 | 内容 | 原因 |
 | --- | --- | --- |
-| ★★★ 必会 | 版本状态机：STAGED（已入库待验证）→ ACTIVE（在线检索使用）→ ARCHIVED（归档保留） | 知识库版本管理的核心模型 |
+| ★★★ 必会 | 版本状态机：STAGED(已入库待验证)→ ACTIVE(在线检索使用)→ ARCHIVED(归档保留) | 知识库版本管理的核心模型 |
 | ★★★ 必会 | O(1) 版本切换：激活只修改 JSON 文件的 active\_version 指针，不更新 Milvus 数据 | 理解版本切换为什么是即时的，面试高频 |
 | ★★★ 必会 | 版本号设计：`kb_&#123;scenario_id&#125;_&#123;timestamp&#125;_&#123;config_hash&#125;`，配置哈希体现版本差异 | 从版本号直接判断配置是否变化 |
 | ★★ 理解 | resolve\_active\_version() 的三级优先级：请求传入 > 环境变量 > 版本清单 active\_version | 理解版本解析流程 |
@@ -536,10 +536,10 @@ docker compose --env-file .env.compose run --rm api python scripts/rebuild_kb_ve
 | ★ 了解 | 版本清单 JSON 文件结构 | 了解持久化格式 |
 | ★ 了解 | 评测时可以显式指定历史版本做对比 | 了解版本管理的扩展用途 |
 
-## 本讲小结
+## 10. 本讲小结
 
-- **版本管理让知识库更新成为可逆操作**：入库 → 评测 → 激活 →（效果不好）→ 回滚
-- **版本状态机**：STAGED（待验证）→ ACTIVE（在线使用）→ ARCHIVED（归档保留）
+- **版本管理让知识库更新成为可逆操作**：入库 → 评测 → 激活 →(效果不好)→ 回滚
+- **版本状态机**：STAGED(待验证)→ ACTIVE(在线使用)→ ARCHIVED(归档保留)
 - **版本切换是 O(1) 操作**：只修改 JSON 文件中的 active\_version，不更新 Milvus 数据
 - **版本号** = 时间戳 + 配置哈希，可以肉眼判断先后和配置差异
 - **每个场景独立版本清单**，不同行业场景可以独立管理知识库版本

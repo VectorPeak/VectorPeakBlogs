@@ -12,11 +12,11 @@ icon: "magnifying-glass"
 
 ---
 
-## 前言：如何高效学习这个项目
+## 1. 前言：如何高效学习这个项目
 
 这个项目已经接近企业级 RAG 教学项目的完整度。如果第一次学习时把所有模块都当成同等重要，会很容易迷失。**正确方式是先抓住"能跑通一次高质量问答"的主链路，再逐步补治理、评测、多场景和复杂资料能力。**
 
-### 核心原则
+### 1.1 核心原则
 
 第一遍学习只回答一个问题：
 
@@ -24,7 +24,7 @@ icon: "magnifying-glass"
 
 能把这条链路讲清楚，就已经掌握了项目的主干。其他内容是为了让系统更像企业项目、更适合面试表达，但不是第一遍必须全部吃透。
 
-### 四层学习优先级
+### 1.2 四层学习优先级
 
 | 层级 | 定位 | 是否必须 | 学习目标 |
 | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ icon: "magnifying-glass"
 
 > **LangSmith 学习提示**：Trace 用来观察一次 RAG 请求内部发生了什么，Evaluation 用来判断回答效果好不好。首页只建立概念，详细实现和项目落地点放在 [第 17 讲：RAG 回归验收与入库质量](/RAG/advanced/rag-evaluation) 和 [第 19 讲：LangSmith 观测、Trace 与生产化部署](/RAG/production/observability-tracing)。
 
-### P0 主链路一览
+### 1.3 P0 主链路一览
 
 | 模块 | 对应代码 | 核心概念 |
 | --- | --- | --- |
@@ -47,14 +47,14 @@ icon: "magnifying-glass"
 | Prompt Profile | `qa_core/prompts/` | 不同问题类别用不同回答口径 |
 | 流式生成 + 引用 | `qa_core/pipeline/rag.py` | WebSocket 流式输出 + 来源标注 |
 
-### P0 最低验收标准
+### 1.4 P0 最低验收标准
 
 1. 能画出"页面 → API → QAService → Pipeline → 检索 → LLM → 流式返回"的流程
 2. 能解释为什么先做意图识别，再做检索计划
 3. 能解释 Dense、Sparse、Reranker 在一次检索中的作用
 4. 能解释为什么答案必须带来源引用
 
-### 推荐学习节奏
+### 1.5 推荐学习节奏
 
 | 阶段 | 时长 | 内容 | 对应讲次 |
 | --- | --- | --- | --- |
@@ -63,7 +63,7 @@ icon: "magnifying-glass"
 | **工程化** | 2-3 天 | 框架原理、入库、版本管理、数据隔离、评测、测试 | 第 12-18 讲 |
 | **面试拔高** | 1-2 天 | 多场景复用、LangSmith 诊断、Bad Case 沉淀、生产部署、容量评估、二期规划 | 第 19 讲 |
 
-### 第一遍可以暂时跳过的内容
+### 1.6 遍可以暂时跳过的内容
 
 - 企业 overlay、dirty samples 和复杂 OCR / VLM 细节
 - 复杂 Excel 语义还原
@@ -76,7 +76,7 @@ icon: "magnifying-glass"
 
 第一遍只需要知道它们存在，以及它们服务于哪个工程目标。
 
-### 最小闭环作业
+### 1.7 最小闭环作业
 
 完成下面 **5 件事**，就说明已经掌握一期主线：
 
@@ -86,23 +86,23 @@ icon: "magnifying-glass"
 4. 找到至少一条引用来源，并说明它是怎么从 Milvus 召回来的
 5. 修改一份文档或 FAQ，重新入库并让新版本生效
 
-### 代码阅读路线
+### 1.8 代码阅读路线
 
 如果要读代码，按这条线走——不要跳，不要从中间开始：
 
 ```text
 app.py
-  → qa_core/api/chat.py          （WebSocket 流式事件 + HTTP 诊断/历史/反馈）
-  → qa_core/application/service.py （QAService 编排层）
-  → qa_core/pipeline/rag.py        （RAG 主流程）
-  → qa_core/pipeline/steps.py      （意图识别、边界判断、上下文构建）
-  → qa_core/pipeline/retrieval_steps.py （FAQ 检索、文档检索）
-  → qa_core/retrieval/             （Milvus Hybrid Search、过滤、重排）
-  → qa_core/prompts/               （Prompt Profile 路由）
-  → qa_core/indexing/              （文档加载、切分、入库）
+  → qa_core/api/chat.py          (WebSocket 流式事件 + HTTP 诊断/历史/反馈)
+  → qa_core/application/service.py (QAService 编排层)
+  → qa_core/pipeline/rag.py        (RAG 主流程)
+  → qa_core/pipeline/steps.py      (意图识别、边界判断、上下文构建)
+  → qa_core/pipeline/retrieval_steps.py (FAQ 检索、文档检索)
+  → qa_core/retrieval/             (Milvus Hybrid Search、过滤、重排)
+  → qa_core/prompts/               (Prompt Profile 路由)
+  → qa_core/indexing/              (文档加载、切分、入库)
 ```
 
-### 面试表达主线
+### 1.9 面试表达主线
 
 面试时不要从"项目有很多功能"开始讲，而应按主次讲：
 
@@ -113,7 +113,7 @@ app.py
 > 工程侧通过知识库版本、数据隔离、入库质量检查、领域评测指标和 LangSmith Trace/Evaluation 保证系统可维护、可回滚、可诊断。
 > OCR/VLM、GraphRAG、LangGraph Agent 属于后续扩展方向，不混入一期主链路。
 
-### 二期扩展方向：Agent 化编排
+### 1.10 二期扩展方向：Agent 化编排
 
 一期目标是先把企业级 RAG 平台做可靠，重点解决检索、重排、Prompt、版本、隔离、评测和观测。二期可以在这个基础上引入 Agent 化编排：将当前 RAG Pipeline 封装为 **RAG Agent**，再新增 **GraphRAG Agent**、SQL Agent、Workflow Agent 等专用能力，由 Router/Planner 统一调度。
 
@@ -121,7 +121,7 @@ app.py
 
 ---
 
-## 快速导航
+## 2. 快速导航
 
 - [课程大纲与学习路线](/RAG/advanced/rag-optimization) — 19 讲整体结构和推荐学习顺序
 - [第 1 讲：项目概述与环境搭建](/RAG/foundations/project-overview) — 从这里开始
@@ -129,16 +129,16 @@ app.py
 - [🎬 流程动画演示](/RAG/demos/pipeline-demo) — 5 分钟建立系统整体认知
 - [📊 业务流程图](/RAG/demos/business-flow) — 在线问答、离线入库、系统全景、章节跟敲路线图
 
-## 课程结构
+## 3. 课程结构
 
 | 阶段 | 讲次 | 内容 | 优先级 |
 | --- | --- | --- | --- |
 | 第一阶段 | 01-02 | 基础概念：RAG 原理、向量检索、Embedding | P0 |
-| 第二阶段 | 03-11 | 核心 RAG 链路：LangChain→Milvus索引→意图→检索→改写→混合检索→编排→Pipeline→Prompt | **P0（核心）** |
+| 第二阶段 | 03-11 | 核心 RAG 链路：LangChain→Milvus索引→意图→检索→改写→混合检索→编排→Pipeline→Prompt | **P0(核心)** |
 | 第三阶段 | 12-13 | Web 服务基础设施：FastAPI、Preflight | P1 |
 | 第四阶段 | 14-19 | 治理与运维：版本管理、数据隔离、知识库离线构建、评测、测试、追踪 | P1-P2 |
 
-### 19 讲详细优先级
+### 3.1 讲详细优先级
 
 | 讲次 | 主题 | 优先级 | 第一遍学习要求 |
 | --- | --- | --- | --- |
@@ -162,7 +162,7 @@ app.py
 | 18 | 测试与接口验收 | P1 | 先掌握核心测试思路 |
 | 19 | LangSmith 观测、Trace 与生产化部署 | P2 | 第二遍学习，面试加分；能讲生产部署、容量评估和监控 |
 
-## 技术栈
+## 4. 技术栈
 
 | 层级 | 技术 |
 | --- | --- |
