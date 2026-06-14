@@ -161,13 +161,6 @@
               "RAG/appendix/chunking-strategy-appendix",
               "RAG/appendix/tool-foundations"
             ]
-          },
-          {
-            "group": "流程演示",
-            "pages": [
-              "RAG/demos/business-flow",
-              "RAG/demos/pipeline-demo"
-            ]
           }
         ]
       }
