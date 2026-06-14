@@ -16,7 +16,10 @@
           {
             "group": "Getting started",
             "pages": [
-              "index"
+              {
+                "page": "index",
+                "icon": "house"
+              }
             ]
           },
           {
@@ -94,13 +97,79 @@
         "tab": "RAG",
         "groups": [
           {
-            "group": "RAG",
+            "group": "总览",
             "pages": [
-              "RAG/index",
-              "RAG/rag-optimization",
-              "RAG/rag-evaluation",
-              "RAG/graph-rag",
-              "RAG/agentic-rag"
+              "RAG/index"
+            ]
+          },
+          {
+            "group": "基础入门",
+            "pages": [
+              "RAG/foundations/project-overview",
+              "RAG/foundations/rag-fundamentals",
+              "RAG/foundations/langchain-ecosystem"
+            ]
+          },
+          {
+            "group": "检索工程",
+            "pages": [
+              "RAG/retrieval/chunking-strategy",
+              "RAG/retrieval/embedding-and-bge-m3",
+              "RAG/retrieval/milvus-index-and-operations",
+              "RAG/retrieval/retrieval-strategy",
+              "RAG/retrieval/query-rewrite-variants",
+              "RAG/retrieval/milvus-hybrid-search",
+              "RAG/retrieval/cross-encoder-reranker"
+            ]
+          },
+          {
+            "group": "链路编排",
+            "pages": [
+              "RAG/pipeline/intent-classification",
+              "RAG/pipeline/qaservice-orchestration",
+              "RAG/pipeline/rag-pipeline",
+              "RAG/pipeline/prompt-engineering",
+              "RAG/pipeline/fastapi-asynchronous-service",
+              "RAG/pipeline/app-entry-preflight"
+            ]
+          },
+          {
+            "group": "生产治理",
+            "pages": [
+              "RAG/production/kb-versioning",
+              "RAG/production/data-isolation",
+              "RAG/production/ingestion-pipeline",
+              "RAG/production/quality-evaluation",
+              "RAG/production/testing-system",
+              "RAG/production/observability-tracing"
+            ]
+          },
+          {
+            "group": "进阶专题",
+            "pages": [
+              "RAG/advanced/rag-optimization",
+              "RAG/advanced/rag-evaluation",
+              "RAG/advanced/graph-rag",
+              "RAG/advanced/agentic-rag"
+            ]
+          },
+          {
+            "group": "技术附录",
+            "pages": [
+              "RAG/appendix/pydantic",
+              "RAG/appendix/sha256-fingerprint",
+              "RAG/appendix/hnsw-index",
+              "RAG/appendix/recursive-splitter",
+              "RAG/appendix/embedding-models",
+              "RAG/appendix/chunking-strategy-appendix",
+              "RAG/appendix/tool-foundations"
+            ]
+          },
+          {
+            "group": "流程演示",
+            "pages": [
+              "RAG/demos/business-flow",
+              "RAG/demos/pipeline-demo"
             ]
           }
         ]
@@ -138,8 +207,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/VectorPeak",
-      "linkedin": "https://www.linkedin.com/in/%E6%98%9F%E5%B2%B3-%E6%9C%B1-132b33412/"
+      "github": "https://github.com/VectorPeak"
     }
   }
 }
