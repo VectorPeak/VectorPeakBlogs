@@ -16,10 +16,7 @@
           {
             "group": "Getting started",
             "pages": [
-              {
-                "page": "index",
-                "icon": "house"
-              }
+              "Guides/index"
             ]
           },
           {
